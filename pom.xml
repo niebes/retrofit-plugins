@@ -7,6 +7,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>retrofit-resilience4j-retry</module>
+        <module>retrofit-metrics</module>
+        <module>retrofit-metrics-micrometer</module>
     </modules>
 
     <properties>
