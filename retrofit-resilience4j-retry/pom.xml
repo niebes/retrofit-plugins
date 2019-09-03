@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>resilience4j-retry</artifactId>
+    <artifactId>retrofit-resilience4j-retry</artifactId>
     <description>Implementation to retry retrofit calls with resilience4j</description>
 
     <properties>
