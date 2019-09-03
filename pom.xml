@@ -151,4 +151,9 @@
             </url>
         </repository>
     </distributionManagement>
+    <scm>
+        <url>https://github.com/niebes/retrofit-plugins</url>
+        <connection>scm:git:git@github.com:niebes/retrofit-plugins.git</connection>
+        <developerConnection>scm:git:git@github.com:niebes/retrofit-plugins.git</developerConnection>
+    </scm>
 </project>
