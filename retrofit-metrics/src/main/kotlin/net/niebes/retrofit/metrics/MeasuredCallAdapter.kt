@@ -5,8 +5,8 @@ import retrofit2.Call
 import retrofit2.CallAdapter
 
 class MeasuredCallAdapter<OriginalType, TargetType> internal constructor(
-  private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
-  private val metricsCollector: RetrofitCallMetricsCollector
+    private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
+    private val metricsCollector: RetrofitCallMetricsCollector
 ) : CallAdapter<OriginalType, TargetType> {
 
     override fun responseType(): Type = nextCallAdapter.responseType()

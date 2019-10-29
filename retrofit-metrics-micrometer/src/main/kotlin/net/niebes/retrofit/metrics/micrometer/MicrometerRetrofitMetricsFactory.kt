@@ -5,5 +5,5 @@ import io.micrometer.core.instrument.Metrics
 import net.niebes.retrofit.metrics.RetrofitMetricsFactory
 
 class MicrometerRetrofitMetricsFactory(
-  meterRegistry: MeterRegistry = Metrics.globalRegistry
+    meterRegistry: MeterRegistry = Metrics.globalRegistry
 ) : RetrofitMetricsFactory(MicrometerMetricsRecorder(meterRegistry))

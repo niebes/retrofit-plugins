@@ -7,10 +7,10 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class RetryingCall<T> internal constructor(
-  private val wrappedCall: Call<T>,
-  private val retry: Retry,
-  private val runWithRetry: (Request) -> Boolean,
-  private val retryContext: Retry.Context<Response<T>> = retry.context<Response<T>>() // otherwise we loose the retry count
+    private val wrappedCall: Call<T>,
+    private val retry: Retry,
+    private val runWithRetry: (Request) -> Boolean,
+    private val retryContext: Retry.Context<Response<T>> = retry.context<Response<T>>() // otherwise we loose the retry count
 ) : Call<T> {
 
     override fun execute(): Response<T> =
