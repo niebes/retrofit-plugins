@@ -21,7 +21,8 @@ open class RetrofitMetricsFactory(var metricsRecorder: MetricsRecorder) : CallAd
         }
         val nextCallAdapter = retrofit.nextCallAdapter(this, returnType, annotations)
         return MeasuredCallAdapter(
-            nextCallAdapter, RetrofitCallMetricsCollector(
+            nextCallAdapter,
+            RetrofitCallMetricsCollector(
                 retrofit.baseUrl().toString(),
                 getUri(annotations)!!,
                 metricsRecorder

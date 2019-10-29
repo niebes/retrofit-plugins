@@ -5,16 +5,16 @@ import okhttp3.Request
 import retrofit2.Response
 
 class RetrofitCallMetricsCollector(
-  private val baseUrl: String,
-  private val uri: String,
-  private val metricsRecorder: MetricsRecorder
+    private val baseUrl: String,
+    private val uri: String,
+    private val metricsRecorder: MetricsRecorder
 ) {
 
     fun measureRequestDuration(
-      duration: Duration,
-      request: Request,
-      response: Response<out Any?>,
-      async: Boolean
+        duration: Duration,
+        request: Request,
+        response: Response<out Any?>,
+        async: Boolean
     ) = metricsRecorder.recordTiming(mapOf(
         "base_url" to baseUrl,
         "uri" to uri,
@@ -26,10 +26,10 @@ class RetrofitCallMetricsCollector(
     ), duration)
 
     fun measureRequestException(
-      duration: Duration,
-      request: Request,
-      throwable: Throwable,
-      async: Boolean
+        duration: Duration,
+        request: Request,
+        throwable: Throwable,
+        async: Boolean
     ) = metricsRecorder.recordTiming(mapOf(
         "base_url" to baseUrl,
         "method" to request.method,

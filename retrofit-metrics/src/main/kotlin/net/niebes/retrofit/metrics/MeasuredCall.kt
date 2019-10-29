@@ -7,8 +7,8 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class MeasuredCall<T> internal constructor(
-  private val wrappedCall: Call<T>,
-  private val metrics: RetrofitCallMetricsCollector
+    private val wrappedCall: Call<T>,
+    private val metrics: RetrofitCallMetricsCollector
 ) : Call<T> {
 
     override fun execute(): Response<T> {
