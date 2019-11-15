@@ -2,9 +2,9 @@
 
 : ${1?"Usage: $0 <[pre]major|[pre]minor|[pre]patch|prerelease>"}
 
-./mvnw scm:check-local-modification
+#./mvnw scm:check-local-modification
 
-current=$(git describe --abbrev=0 || echo 0.0.0)
+current="1.1.0"
 release=$(semver ${current} -i $1 --preid RC)
 next=$(semver ${release} -i minor)
 
