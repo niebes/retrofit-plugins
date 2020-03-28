@@ -4,7 +4,7 @@
     <parent>
         <artifactId>retrofit-plugins</artifactId>
         <groupId>net.niebes</groupId>
-        <version>1.7.0-SNAPSHOT</version>
+        <version>1.7.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
             <dependency>
                 <groupId>net.niebes</groupId>
                 <artifactId>retrofit-metrics</artifactId>
-                <version>1.7.0-SNAPSHOT</version>
+                <version>1.7.0</version>
             </dependency>
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>net.niebes</groupId>
             <artifactId>retrofit-metrics</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>1.7.0</version>
         </dependency>
 
         <dependency>
