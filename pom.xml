@@ -8,6 +8,7 @@
         <module>retrofit-resilience4j-retry</module>
         <module>retrofit-metrics</module>
         <module>retrofit-metrics-micrometer</module>
+        <module>retrofit-metrics-statsd</module>
     </modules>
     <name>Retrofit Plugins</name>
     <description>a collection to make the usage of retrofit even easier</description>
