@@ -30,7 +30,7 @@ import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class RetrofitMetricsFactoryTest {
+class StatsDRetrofitMetricsFactoryTest {
     private val RESPONSE_BODY = "{ \"name\": \"The body with no name\" }"
     private val RESPONSE_OBJECT = NamedObject("The body with no name")
     private val statsD = mock(StatsDClient::class.java)
@@ -250,7 +250,7 @@ class RetrofitMetricsFactoryTest {
         fun root(): Call<NamedObject>
 
         @GET(".")
-        fun dotNotation(): Call<NamedObject> //uses base url without path
+        fun dotNotation(): Call<NamedObject> // uses base url without path
 
         @HTTP(method = "FOO", path = "/custom/method")
         fun customHTTPMethod(): Call<NamedObject>
