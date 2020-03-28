@@ -75,7 +75,9 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun root() {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
+
         val response = client.root().execute()
+
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
@@ -91,7 +93,9 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun dotNotation() {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
+
         val response = client.dotNotation().execute()
+
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
@@ -107,7 +111,9 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun rootWith500() {
         addResponse(MockResponse().setBody(RESPONSE_BODY).setResponseCode(500))
+
         val response = client.root().execute()
+
         assertThat(response.code(), `is`(500))
         verifyRequestMetrics(
             baseUrl = baseUrl(),
@@ -140,7 +146,9 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun customHttpMethod() {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
+
         val response = client.customHTTPMethod().execute()
+
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
@@ -156,7 +164,9 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun useUriPlaceHolder() {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
+
         val response = client.getWithPlaceHolderValue("userId", "headerValue").execute()
+
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
@@ -172,6 +182,7 @@ class RetrofitMetricsFactoryTest {
     @Test
     fun async() {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
+
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject?> {
             override fun onResponse(call: Call<NamedObject?>, response: Response<NamedObject?>) {
@@ -183,6 +194,7 @@ class RetrofitMetricsFactoryTest {
             }
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
+
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = "api/users/{userId}/foo",
