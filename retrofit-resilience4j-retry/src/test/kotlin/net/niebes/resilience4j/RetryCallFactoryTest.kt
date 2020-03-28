@@ -3,12 +3,6 @@ package net.niebes.resilience4j
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
-import java.net.SocketTimeoutException
-import java.time.Duration
-import java.util.Objects
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -28,6 +22,12 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import java.net.SocketTimeoutException
+import java.time.Duration
+import java.util.Objects
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class RetryCallFactoryTest {
     companion object {
@@ -39,10 +39,10 @@ internal class RetryCallFactoryTest {
     private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
     private val retryConfig: RetryConfig = RetryConfig.custom<Response<out Any?>>()
-            .waitDuration(Duration.ofMillis(10))
-            .retryOnResult { response -> response.code() in 500..599 }
-            .maxAttempts(maxAttempts)
-            .build()
+        .waitDuration(Duration.ofMillis(10))
+        .retryOnResult { response -> response.code() in 500..599 }
+        .maxAttempts(maxAttempts)
+        .build()
 
     @BeforeEach
     fun before() {
@@ -59,22 +59,22 @@ internal class RetryCallFactoryTest {
     }
 
     private fun createClient(retryCallFactory: RetryCallFactory): SomeClient =
-            Retrofit.Builder()
-                    .client(
-                            OkHttpClient.Builder()
-                                    .connectTimeout(Duration.ofMillis(100))
-                                    .readTimeout(Duration.ofMillis(100))
-                                    .writeTimeout(Duration.ofMillis(100))
-                                    .build()
-                    )
-                    .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
-                    .addCallAdapterFactory(retryCallFactory)
-                    .baseUrl(baseUrl())
+        Retrofit.Builder()
+            .client(
+                OkHttpClient.Builder()
+                    .connectTimeout(Duration.ofMillis(100))
+                    .readTimeout(Duration.ofMillis(100))
+                    .writeTimeout(Duration.ofMillis(100))
                     .build()
-                    .create(SomeClient::class.java)
+            )
+            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            .addCallAdapterFactory(retryCallFactory)
+            .baseUrl(baseUrl())
+            .build()
+            .create(SomeClient::class.java)
 
     private fun addResponse(mockResponse: MockResponse) =
-            server.enqueue(mockResponse)
+        server.enqueue(mockResponse)
 
     @AfterEach
     fun after() {
@@ -134,16 +134,16 @@ internal class RetryCallFactoryTest {
     @Test
     fun `should retry POST when configured`() {
         client = createClient(
-                RetryCallFactory(
-                        Retry.of(
-                                "test",
-                                retryConfig
-                        )
-                ) {
-                    method == "GET" || setOf(
-                            "new/nonidempotent/transaction".split("/")
-                    ).contains(url.pathSegments)
-                })
+            RetryCallFactory(
+                Retry.of(
+                    "test",
+                    retryConfig
+                )
+            ) {
+                method == "GET" || setOf(
+                    "new/nonidempotent/transaction".split("/")
+                ).contains(url.pathSegments)
+            })
         repeat(maxAttempts) {
             addResponse(MockResponse().apply {
                 setBody(RESPONSE_BODY)
@@ -154,9 +154,9 @@ internal class RetryCallFactoryTest {
         client.createTransaction().execute()
 
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
-                "/new/nonidempotent/transaction",
-                "/new/nonidempotent/transaction",
-                "/new/nonidempotent/transaction"
+            "/new/nonidempotent/transaction",
+            "/new/nonidempotent/transaction",
+            "/new/nonidempotent/transaction"
         )
     }
 
@@ -188,9 +188,9 @@ internal class RetryCallFactoryTest {
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
-                "/api/users/userId/foo",
-                "/api/users/userId/foo",
-                "/api/users/userId/foo"
+            "/api/users/userId/foo",
+            "/api/users/userId/foo",
+            "/api/users/userId/foo"
         )
     }
 
@@ -219,9 +219,9 @@ internal class RetryCallFactoryTest {
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
-                "/api/users/userId/foo",
-                "/api/users/userId/foo",
-                "/api/users/userId/foo"
+            "/api/users/userId/foo",
+            "/api/users/userId/foo",
+            "/api/users/userId/foo"
         )
     }
 
@@ -246,9 +246,9 @@ internal class RetryCallFactoryTest {
         assertThat(failures.get()).isEqualTo(1)
 
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
-                "/api/users/userId/foo",
-                "/api/users/userId/foo",
-                "/api/users/userId/foo"
+            "/api/users/userId/foo",
+            "/api/users/userId/foo",
+            "/api/users/userId/foo"
         )
     }
 
@@ -274,9 +274,9 @@ internal class RetryCallFactoryTest {
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
-                "/api/users/userId/foo",
-                "/api/users/userId/foo",
-                "/api/users/userId/foo"
+            "/api/users/userId/foo",
+            "/api/users/userId/foo",
+            "/api/users/userId/foo"
         )
     }
 

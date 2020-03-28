@@ -1,6 +1,5 @@
 package net.niebes.retrofit.metrics
 
-import java.lang.reflect.Type
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.Retrofit
@@ -12,6 +11,7 @@ import retrofit2.http.OPTIONS
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import java.lang.reflect.Type
 
 open class RetrofitMetricsFactory(var metricsRecorder: MetricsRecorder) : CallAdapter.Factory() {
 

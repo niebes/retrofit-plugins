@@ -1,10 +1,10 @@
 package net.niebes.resilience4j
 
 import io.github.resilience4j.retry.Retry
-import java.lang.reflect.Type
 import okhttp3.Request
 import retrofit2.Call
 import retrofit2.CallAdapter
+import java.lang.reflect.Type
 
 class RetryCallAdapter<OriginalType, TargetType>(
     private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
