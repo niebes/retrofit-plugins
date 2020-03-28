@@ -6,7 +6,7 @@ import com.timgroup.statsd.StatsDClient
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.hamcrest.Matchers
+import org.hamcrest.Matchers.`is`
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertThat
@@ -69,8 +69,8 @@ class RetrofitMetricsFactoryTest {
     private fun baseUrl(): String = server.url("/").toString()
 
     private fun assertResponse(response: Response<NamedObject>, status: Int, body: Any) {
-        assertThat(response.code(), Matchers.`is`(status))
-        assertThat(response.body(), Matchers.`is`(body))
+        assertThat(response.code(), `is`(status))
+        assertThat(response.body(), `is`(body))
     }
 
     @Test
@@ -78,7 +78,15 @@ class RetrofitMetricsFactoryTest {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
         val response = client.root().execute()
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
-        verifyRequestMetrics(baseUrl(), "/", "GET", "200", "SUCCESSFUL", "false", "None")
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = "/",
+            method = "GET",
+            status = "200",
+            series = "SUCCESSFUL",
+            aysnc = "false",
+            exception = "None"
+        )
     }
 
     @Test
@@ -86,15 +94,31 @@ class RetrofitMetricsFactoryTest {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
         val response = client.dotNotation().execute()
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
-        verifyRequestMetrics(baseUrl(), ".", "GET", "200", "SUCCESSFUL", "false", "None")
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = ".",
+            method = "GET",
+            status = "200",
+            series = "SUCCESSFUL",
+            aysnc = "false",
+            exception = "None"
+        )
     }
 
     @Test
     fun rootWith500() {
         addResponse(MockResponse().setBody(RESPONSE_BODY).setResponseCode(500))
         val response = client.root().execute()
-        assertThat(response.code(), Matchers.`is`(500))
-        verifyRequestMetrics(baseUrl(), "/", "GET", "500", "SERVER_ERROR", "false", "None")
+        assertThat(response.code(), `is`(500))
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = "/",
+            method = "GET",
+            status = "500",
+            series = "SERVER_ERROR",
+            aysnc = "false",
+            exception = "None"
+        )
     }
 
     @Test
@@ -104,7 +128,14 @@ class RetrofitMetricsFactoryTest {
             fail("exception expected")
         } catch (ignored: Exception) {
         }
-        verifyExceptionMetrics(baseUrl(), "/", "GET", "false", "SocketTimeoutException")
+
+        verifyExceptionMetrics(
+            baseUrl = baseUrl(),
+            path = "/",
+            method = "GET",
+            aysnc = "false",
+            exception = "SocketTimeoutException"
+        )
     }
 
     @Test
@@ -112,7 +143,15 @@ class RetrofitMetricsFactoryTest {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
         val response = client.customHTTPMethod().execute()
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
-        verifyRequestMetrics(baseUrl(), "/custom/method", "FOO", "200", "SUCCESSFUL", "false", "None")
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = "/custom/method",
+            method = "FOO",
+            status = "200",
+            series = "SUCCESSFUL",
+            aysnc = "false",
+            exception = "None"
+        )
     }
 
     @Test
@@ -120,7 +159,15 @@ class RetrofitMetricsFactoryTest {
         addResponse(MockResponse().setBody(RESPONSE_BODY))
         val response = client.getWithPlaceHolderValue("userId", "headerValue").execute()
         assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
-        verifyRequestMetrics(baseUrl(), "api/users/{userId}/foo", "GET", "200", "SUCCESSFUL", "false", "None")
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = "api/users/{userId}/foo",
+            method = "GET",
+            status = "200",
+            series = "SUCCESSFUL",
+            aysnc = "false",
+            exception = "None"
+        )
     }
 
     @Test
@@ -137,11 +184,26 @@ class RetrofitMetricsFactoryTest {
             }
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
-        verifyRequestMetrics(baseUrl(), "api/users/{userId}/foo", "GET", "200", "SUCCESSFUL", "true", "None")
+        verifyRequestMetrics(
+            baseUrl = baseUrl(),
+            path = "api/users/{userId}/foo",
+            method = "GET",
+            status = "200",
+            series = "SUCCESSFUL",
+            aysnc = "true",
+            exception = "None"
+        )
     }
 
-    private fun verifyRequestMetrics(baseUrl: String, path: String, method: String, status: String,
-                                     series: String, aysnc: String, exception: String) {
+    private fun verifyRequestMetrics(
+        baseUrl: String,
+        path: String,
+        method: String,
+        status: String,
+        series: String,
+        aysnc: String,
+        exception: String
+    ) {
         verify(statsD).histogram(eq("http.client.requests"), anyLong(),
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
@@ -153,8 +215,13 @@ class RetrofitMetricsFactoryTest {
         )
     }
 
-    private fun verifyExceptionMetrics(baseUrl: String, path: String, method: String,
-                                       aysnc: String, exception: String) {
+    private fun verifyExceptionMetrics(
+        baseUrl: String,
+        path: String,
+        method: String,
+        aysnc: String,
+        exception: String
+    ) {
         verify(statsD).histogram(eq("http.client.requests"), anyLong(),
             eq("base_url:$baseUrl"),
             eq("method:$method"),
@@ -178,7 +245,10 @@ class RetrofitMetricsFactoryTest {
         fun customHTTPMethod(): Call<NamedObject>
 
         @GET("api/users/{userId}/foo")
-        fun getWithPlaceHolderValue(@Path("userId") userId: String?, @Header("some") someHeader: String?): Call<NamedObject>
+        fun getWithPlaceHolderValue(
+            @Path("userId") userId: String,
+            @Header("some") someHeader: String
+        ): Call<NamedObject>
     }
 
     data class NamedObject(val name: String)
