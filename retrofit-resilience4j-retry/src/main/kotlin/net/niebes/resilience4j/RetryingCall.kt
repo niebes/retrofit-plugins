@@ -2,6 +2,7 @@ package net.niebes.resilience4j
 
 import io.github.resilience4j.retry.Retry
 import okhttp3.Request
+import okio.Timeout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -61,4 +62,6 @@ class RetryingCall<T> internal constructor(
     override fun cancel() = wrappedCall.cancel()
 
     override fun request(): Request = wrappedCall.request()
+
+    override fun timeout(): Timeout = wrappedCall.timeout()
 }
