@@ -8,7 +8,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.Matchers.`is`
 import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.assertThat
 import org.junit.Assert.fail
 import org.junit.Before
