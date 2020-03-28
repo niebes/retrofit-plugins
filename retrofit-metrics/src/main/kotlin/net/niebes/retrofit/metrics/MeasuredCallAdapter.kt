@@ -1,8 +1,8 @@
 package net.niebes.retrofit.metrics
 
-import java.lang.reflect.Type
 import retrofit2.Call
 import retrofit2.CallAdapter
+import java.lang.reflect.Type
 
 class MeasuredCallAdapter<OriginalType, TargetType> internal constructor(
     private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,

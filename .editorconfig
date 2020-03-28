@@ -17,9 +17,10 @@ insert_final_newline = true
 
 trim_trailing_whitespace = true
 
-[*.{java, kt}]
+[*.{java,kt}]
 #No * imports.
 wildcard_import_limit = 0
+disabled_rules = import-ordering
 
-[*.{yml, yaml, md}]
+[*.{yml,yaml,md}]
 indent_size = 2

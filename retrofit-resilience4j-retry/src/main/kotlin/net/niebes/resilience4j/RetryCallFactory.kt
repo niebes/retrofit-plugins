@@ -1,11 +1,11 @@
 package net.niebes.resilience4j
 
 import io.github.resilience4j.retry.Retry
-import java.lang.reflect.Type
 import okhttp3.Request
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.Retrofit
+import java.lang.reflect.Type
 
 /**
  * @param retry a configured retrofit retry executor, which gets active whenever shouldRetry results to true

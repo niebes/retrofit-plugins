@@ -4,9 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import java.util.Objects
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import net.niebes.retrofit.metrics.HttpSeries
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -26,6 +23,8 @@ import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.Path
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class MicrometerRetrofitMetricsFactoryTest {
     private val RESPONSE_BODY = "{ \"name\": \"The body with no name\" }"
@@ -202,10 +201,5 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     /**
      * A test data class
      */
-    class NamedObject(val name: String) {
-
-        override fun hashCode(): Int = Objects.hashCode(this.name)
-
-        override fun equals(other: Any?): Boolean = (other as NamedObject).name == name
-    }
+    data class NamedObject(val name: String)
 }

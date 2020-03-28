@@ -1,8 +1,8 @@
 package net.niebes.retrofit.metrics
 
-import java.time.Duration
 import okhttp3.Request
 import retrofit2.Response
+import java.time.Duration
 
 class RetrofitCallMetricsCollector(
     private val baseUrl: String,
