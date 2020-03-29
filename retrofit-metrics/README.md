@@ -10,7 +10,7 @@ this plugin creates metrics with tags.
 | async         | true for `execute()` false for `enqueue()`       |
 | status        | response status                                  |
 | series        | response status family                           |
-| exception     | `simpleName` of the response exception or `None` |
+| exception     | `simpleName` of the response exception           |
 
 You'll need to capture those metrics with a metrics library of your choice.
 

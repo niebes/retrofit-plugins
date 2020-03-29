@@ -19,10 +19,9 @@ class RetrofitCallMetricsCollector(
         "base_url" to baseUrl,
         "uri" to uri,
         "method" to request.method,
-        "series" to (HttpSeries.fromHttpStatus(response.code())?.name ?: "UNKNOWN"),
-        "status" to response.code().toString(),
         "async" to async.toString(),
-        "exception" to "None"
+        "series" to (HttpSeries.fromHttpStatus(response.code())?.name ?: "UNKNOWN"),
+        "status" to response.code().toString()
     ), duration)
 
     fun measureRequestException(
@@ -32,8 +31,8 @@ class RetrofitCallMetricsCollector(
         async: Boolean
     ) = metricsRecorder.recordTiming(mapOf(
         "base_url" to baseUrl,
-        "method" to request.method,
         "uri" to uri,
+        "method" to request.method,
         "async" to async.toString(),
         "exception" to throwable.javaClass.simpleName
     ), duration)
