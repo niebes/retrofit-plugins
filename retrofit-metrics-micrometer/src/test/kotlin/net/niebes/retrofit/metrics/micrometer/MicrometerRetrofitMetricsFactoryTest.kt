@@ -155,19 +155,18 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     private fun meter(method: String, path: String, baseUrl: String, status: String): Timer =
         meterRegistry.get("http.client.requests")
-            .tag("method", method)
-            .tag("uri", path)
             .tag("base_url", baseUrl)
+            .tag("uri", path)
+            .tag("method", method)
             .tag("status", status)
             .tag("series", HttpSeries.fromHttpStatus(status.toInt())!!.name)
-            .tag("exception", "None")
             .timer()
 
     private fun exceptionMeter(method: String, path: String, baseUrl: String, exception: String): Timer =
         meterRegistry.get("http.client.requests")
-            .tag("method", method)
-            .tag("uri", path)
             .tag("base_url", baseUrl)
+            .tag("uri", path)
+            .tag("method", method)
             .tag("exception", exception)
             .timer()
 
