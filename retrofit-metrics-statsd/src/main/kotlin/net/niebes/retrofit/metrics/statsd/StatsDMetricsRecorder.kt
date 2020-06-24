@@ -17,7 +17,8 @@ class StatsDMetricsRecorder(
     private fun asTagsArray(tags: Map<String, String>): Array<String> =
         tags.entries.map(::tag).toTypedArray()
 
-    private fun tag(entry: Map.Entry<String, String>): String = """${entry.key}:${entry.value}"""
+    private fun tag(entry: Map.Entry<String, String>): String =
+        """${entry.key}:${entry.value}"""
 
     companion object {
         private const val KEY = "http.client.requests"
