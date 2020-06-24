@@ -48,14 +48,18 @@ internal class RetryCallFactoryTest {
     fun before() {
         server = MockWebServer()
         server.start()
-        client = createClient(RetryCallFactory(Retry.of("test", retryConfig).apply {
-            with(eventPublisher) {
-                onSuccess { success -> println("success $success") }
-                onError { error -> println("error $error") }
-                onRetry { retry -> println("retry $retry") }
-                onIgnoredError { ignoredError -> println("error $ignoredError") }
-            }
-        }))
+        client = createClient(
+            RetryCallFactory(
+                Retry.of("test", retryConfig).apply {
+                    with(eventPublisher) {
+                        onSuccess { success -> println("success $success") }
+                        onError { error -> println("error $error") }
+                        onRetry { retry -> println("retry $retry") }
+                        onIgnoredError { ignoredError -> println("error $ignoredError") }
+                    }
+                }
+            )
+        )
     }
 
     private fun createClient(retryCallFactory: RetryCallFactory): SomeClient =
@@ -83,9 +87,11 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should not retry with sucessfull response`() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
         val response = client.root().execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
         val recordedRequests = server.getRecordedRequests()
@@ -96,14 +102,18 @@ internal class RetryCallFactoryTest {
     @Test
     fun `should use the first successful result within retry count`() {
         repeat(maxAttempts - 1) {
-            addResponse(MockResponse().apply {
-                setBody(RESPONSE_BODY)
-                setResponseCode(500)
-            })
+            addResponse(
+                MockResponse().apply {
+                    setBody(RESPONSE_BODY)
+                    setResponseCode(500)
+                }
+            )
         }
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
         val response = client.root().execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
         val recordedRequests = server.getRecordedRequests()
@@ -122,10 +132,12 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should not retry POST by default`() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-            setResponseCode(500)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+                setResponseCode(500)
+            }
+        )
         client.createTransaction().execute()
 
         assertThat(server.getRecordedRequests().map { it.path }).containsExactly("/new/nonidempotent/transaction")
@@ -143,12 +155,15 @@ internal class RetryCallFactoryTest {
                 method == "GET" || setOf(
                     "new/nonidempotent/transaction".split("/")
                 ).contains(url.pathSegments)
-            })
+            }
+        )
         repeat(maxAttempts) {
-            addResponse(MockResponse().apply {
-                setBody(RESPONSE_BODY)
-                setResponseCode(500)
-            })
+            addResponse(
+                MockResponse().apply {
+                    setBody(RESPONSE_BODY)
+                    setResponseCode(500)
+                }
+            )
         }
 
         client.createTransaction().execute()
@@ -162,14 +177,18 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should retry on async requests`() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-            setResponseCode(500)
-        })
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-            setResponseCode(500)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+                setResponseCode(500)
+            }
+        )
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+                setResponseCode(500)
+            }
+        )
         addResponse(MockResponse().setBody(RESPONSE_BODY))
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
@@ -197,10 +216,12 @@ internal class RetryCallFactoryTest {
     @Test
     fun `should report success when no exception thrown`() {
         repeat(maxAttempts) {
-            addResponse(MockResponse().apply {
-                setBody(RESPONSE_BODY)
-                setResponseCode(500)
-            })
+            addResponse(
+                MockResponse().apply {
+                    setBody(RESPONSE_BODY)
+                    setResponseCode(500)
+                }
+            )
         }
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
@@ -255,10 +276,12 @@ internal class RetryCallFactoryTest {
     @Test
     fun `should report success when retry condition not met but now exception thrown`() {
         repeat(maxAttempts) {
-            addResponse(MockResponse().apply {
-                setBody(RESPONSE_BODY)
-                setResponseCode(500)
-            })
+            addResponse(
+                MockResponse().apply {
+                    setBody(RESPONSE_BODY)
+                    setResponseCode(500)
+                }
+            )
         }
         val latch = CountDownLatch(maxAttempts)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {

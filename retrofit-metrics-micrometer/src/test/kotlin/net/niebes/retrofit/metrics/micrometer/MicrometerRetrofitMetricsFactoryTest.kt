@@ -66,9 +66,11 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun root() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
         val response = client.root().execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
 
@@ -84,10 +86,12 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun rootWith500() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-            setResponseCode(500)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+                setResponseCode(500)
+            }
+        )
         val response = client.root().execute()
         assertThat(response.code()).isEqualTo(500)
 
@@ -96,9 +100,11 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun dotNotation() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
         val response = client.dotNotation().execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
 
@@ -107,9 +113,11 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun customHttpMethod() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
         val response = client.customHTTPMethod().execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
 
@@ -118,9 +126,11 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun usesPlaceholder() {
-        addResponse(MockResponse().apply {
-            setBody(RESPONSE_BODY)
-        })
+        addResponse(
+            MockResponse().apply {
+                setBody(RESPONSE_BODY)
+            }
+        )
 
         val response = client.getWithPlaceHolderValue("foo", "bar").execute()
         assertResponse(response, 200, RESPONSE_OBJECT)
