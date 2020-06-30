@@ -208,7 +208,8 @@ class StatsDRetrofitMetricsFactoryTest {
         series: String,
         aysnc: String
     ) {
-        verify(statsD).histogram(eq("http.client.requests"), anyLong(),
+        verify(statsD).histogram(
+            eq("http.client.requests"), anyLong(),
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),
@@ -225,7 +226,8 @@ class StatsDRetrofitMetricsFactoryTest {
         aysnc: String,
         exception: String
     ) {
-        verify(statsD).histogram(eq("http.client.requests"), anyLong(),
+        verify(statsD).histogram(
+            eq("http.client.requests"), anyLong(),
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),

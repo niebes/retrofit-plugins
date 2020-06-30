@@ -21,7 +21,7 @@ trim_trailing_whitespace=true
 #No * imports.
 wildcard_import_limit=0
 kotlin_imports_layout=idea
-disabled_rules=import-ordering
+
 
 [*.{yml,yaml,md}]
 indent_size=2
