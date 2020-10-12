@@ -12,7 +12,7 @@
     <description>Implementation to retry retrofit calls with resilience4j</description>
 
     <properties>
-        <resilience4j.version>1.5.0</resilience4j.version>
+        <resilience4j.version>1.6.1</resilience4j.version>
     </properties>
     <dependencyManagement>
         <dependencies>
