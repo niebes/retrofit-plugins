@@ -170,6 +170,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
             .tag("method", method)
             .tag("status", status)
             .tag("series", HttpSeries.fromHttpStatus(status.toInt())!!.name)
+            .tag("exception", "None")
             .timer()
 
     private fun exceptionMeter(method: String, path: String, baseUrl: String, exception: String): Timer =
@@ -177,6 +178,8 @@ internal class MicrometerRetrofitMetricsFactoryTest {
             .tag("base_url", baseUrl)
             .tag("uri", path)
             .tag("method", method)
+            .tag("status", "Exception")
+            .tag("series", "EXCEPTION")
             .tag("exception", exception)
             .timer()
 
