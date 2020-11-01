@@ -20,7 +20,7 @@
             <dependency>
                 <groupId>io.micrometer</groupId>
                 <artifactId>micrometer-core</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.5</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -257,7 +257,7 @@
                     <dependency>
                         <groupId>com.pinterest</groupId>
                         <artifactId>ktlint</artifactId>
-                        <version>0.37.2</version>
+                        <version>0.39.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
