@@ -22,7 +22,8 @@ class RetrofitCallMetricsCollector(
             "method" to request.method,
             "async" to async.toString(),
             "series" to (HttpSeries.fromHttpStatus(response.code())?.name ?: "UNKNOWN"),
-            "status" to response.code().toString()
+            "status" to response.code().toString(),
+            "exception" to "None",
         ),
         duration
     )
@@ -38,7 +39,9 @@ class RetrofitCallMetricsCollector(
             "uri" to uri,
             "method" to request.method,
             "async" to async.toString(),
-            "exception" to throwable.javaClass.simpleName
+            "exception" to throwable.javaClass.simpleName,
+            "series" to "EXCEPTION",
+            "status" to "Exception"
         ),
         duration
     )
