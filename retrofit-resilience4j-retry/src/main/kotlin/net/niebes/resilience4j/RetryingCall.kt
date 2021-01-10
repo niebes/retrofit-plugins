@@ -11,7 +11,7 @@ class RetryingCall<T> internal constructor(
     private val wrappedCall: Call<T>,
     private val retry: Retry,
     private val runWithRetry: (Request) -> Boolean,
-    private val retryContext: Retry.Context<Response<T>> = retry.context<Response<T>>() // otherwise we loose the retry count
+    private val retryContext: Retry.Context<Response<T>> = retry.context() // otherwise we loose the retry count
 ) : Call<T> {
 
     override fun execute(): Response<T> =
@@ -47,7 +47,7 @@ class RetryingCall<T> internal constructor(
             if (throwable is Exception) throwable else RuntimeException("masked throwable", throwable)
     }
 
-    override fun clone(): Call<T> = RetryingCall<T>(executableCall(), retry, runWithRetry, retryContext)
+    override fun clone(): Call<T> = RetryingCall(executableCall(), retry, runWithRetry, retryContext)
 
     private fun executableCall(): Call<T> =
         if (wrappedCall.isExecuted)

@@ -1,5 +1,6 @@
 package net.niebes.retrofit.metrics
 
+@Suppress("unused")
 enum class HttpSeries(private val value: Int) {
     INFORMATIONAL(1),
     SUCCESSFUL(2),

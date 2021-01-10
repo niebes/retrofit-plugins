@@ -13,9 +13,15 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import java.lang.reflect.Type
 
-open class RetrofitMetricsFactory(var metricsRecorder: MetricsRecorder) : CallAdapter.Factory() {
+open class RetrofitMetricsFactory(
+    private var metricsRecorder: MetricsRecorder
+) : CallAdapter.Factory() {
 
-    override operator fun get(returnType: Type, annotations: Array<Annotation>, retrofit: Retrofit): CallAdapter<*, *>? {
+    override operator fun get(
+        returnType: Type,
+        annotations: Array<Annotation>,
+        retrofit: Retrofit
+    ): CallAdapter<*, *>? {
         if (getRawType(returnType) != Call::class.java) {
             return null
         }
