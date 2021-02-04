@@ -47,7 +47,7 @@
 
         <!-- lib versions -->
         <retrofit.version>2.9.0</retrofit.version>
-        <okhttp.version>4.9.0</okhttp.version>
+        <okhttp.version>4.9.1</okhttp.version>
 
         <!-- Plugins / Tests -->
         <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
