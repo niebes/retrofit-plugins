@@ -2,10 +2,10 @@ package net.niebes.retrofit.metrics.micrometer
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
-import java.time.Duration
 import net.niebes.retrofit.metrics.MetricsRecorder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 class MicrometerMetricsRecorder(
     private val meterRegistry: MeterRegistry,
