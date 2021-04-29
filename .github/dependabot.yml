@@ -6,7 +6,3 @@ updates:
     interval: daily
     timezone: Europe/Berlin
   open-pull-requests-limit: 99
-  ignore:
-  - dependency-name: io.micrometer:micrometer-core
-    versions:
-    - 1.6.4
