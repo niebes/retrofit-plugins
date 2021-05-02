@@ -3,6 +3,9 @@ package net.niebes.retrofit.metrics.statsd
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.timgroup.statsd.StatsDClient
+import java.net.HttpURLConnection
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -26,9 +29,6 @@ import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.Path
-import java.net.HttpURLConnection
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class StatsDRetrofitMetricsFactoryTest {
     private val responseBody = "{ \"name\": \"The body with no name\" }"
