@@ -34,8 +34,8 @@ internal class RetryCallFactoryTest {
         const val maxAttempts = 3
     }
 
-    private val RESPONSE_BODY = "{ \"name\": \"The body with no name\" }"
-    private val RESPONSE_OBJECT = NamedObject("The body with no name")
+    private val responseBody = "{ \"name\": \"The body with no name\" }"
+    private val responseObject = NamedObject("The body with no name")
     private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
     private val retryConfig: RetryConfig = RetryConfig.custom<Response<out Any?>>()
@@ -89,11 +89,11 @@ internal class RetryCallFactoryTest {
     fun `should not retry with sucessfull response`() {
         addResponse(
             MockResponse().apply {
-                setBody(RESPONSE_BODY)
+                setBody(responseBody)
             }
         )
         val response = client.root().execute()
-        assertResponse(response, 200, RESPONSE_OBJECT)
+        assertResponse(response, 200, responseObject)
         val recordedRequests = server.getRecordedRequests()
 
         assertThat(recordedRequests.map { it.path }).containsExactly("/")
@@ -104,18 +104,18 @@ internal class RetryCallFactoryTest {
         repeat(maxAttempts - 1) {
             addResponse(
                 MockResponse().apply {
-                    setBody(RESPONSE_BODY)
+                    setBody(responseBody)
                     setResponseCode(500)
                 }
             )
         }
         addResponse(
             MockResponse().apply {
-                setBody(RESPONSE_BODY)
+                setBody(responseBody)
             }
         )
         val response = client.root().execute()
-        assertResponse(response, 200, RESPONSE_OBJECT)
+        assertResponse(response, 200, responseObject)
         val recordedRequests = server.getRecordedRequests()
 
         assertThat(recordedRequests.size).isEqualTo(maxAttempts)
@@ -134,7 +134,7 @@ internal class RetryCallFactoryTest {
     fun `should not retry POST by default`() {
         addResponse(
             MockResponse().apply {
-                setBody(RESPONSE_BODY)
+                setBody(responseBody)
                 setResponseCode(500)
             }
         )
@@ -160,7 +160,7 @@ internal class RetryCallFactoryTest {
         repeat(maxAttempts) {
             addResponse(
                 MockResponse().apply {
-                    setBody(RESPONSE_BODY)
+                    setBody(responseBody)
                     setResponseCode(500)
                 }
             )
@@ -179,17 +179,17 @@ internal class RetryCallFactoryTest {
     fun `should retry on async requests`() {
         addResponse(
             MockResponse().apply {
-                setBody(RESPONSE_BODY)
+                setBody(responseBody)
                 setResponseCode(500)
             }
         )
         addResponse(
             MockResponse().apply {
-                setBody(RESPONSE_BODY)
+                setBody(responseBody)
                 setResponseCode(500)
             }
         )
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
@@ -218,7 +218,7 @@ internal class RetryCallFactoryTest {
         repeat(maxAttempts) {
             addResponse(
                 MockResponse().apply {
-                    setBody(RESPONSE_BODY)
+                    setBody(responseBody)
                     setResponseCode(500)
                 }
             )
@@ -278,7 +278,7 @@ internal class RetryCallFactoryTest {
         repeat(maxAttempts) {
             addResponse(
                 MockResponse().apply {
-                    setBody(RESPONSE_BODY)
+                    setBody(responseBody)
                     setResponseCode(500)
                 }
             )
@@ -333,7 +333,7 @@ internal class RetryCallFactoryTest {
     /**
      * A test data class
      */
-    class NamedObject(val name: String) {
+    data class NamedObject(val name: String) {
         override fun hashCode() = Objects.hashCode(this.name)
 
         override fun equals(other: Any?) = (other as NamedObject).name == name
