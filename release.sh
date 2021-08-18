@@ -20,5 +20,5 @@ git commit -am "Development ${next}-SNAPSHOT"
 git push origin
 git push origin --tags
 
-git checkout master
+git checkout develop
 git branch -D release/${release}
