@@ -17,8 +17,8 @@ git commit -am "Release ${release}"
 ./mvnw versions:set -D newVersion=${next}-SNAPSHOT
 git commit -am "Development ${next}-SNAPSHOT"
 
-git push
-git push --tags
+git push origin
+git push origin --tags
 
 git checkout master
 git branch -D release/${release}
