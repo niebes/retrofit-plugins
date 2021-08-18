@@ -31,8 +31,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class StatsDRetrofitMetricsFactoryTest {
-    private val RESPONSE_BODY = "{ \"name\": \"The body with no name\" }"
-    private val RESPONSE_OBJECT = NamedObject("The body with no name")
+    private val responseBody = "{ \"name\": \"The body with no name\" }"
+    private val responseObject = NamedObject("The body with no name")
     private val statsD = mock(StatsDClient::class.java)
     private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
@@ -74,11 +74,11 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun root() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
 
         val response = client.root().execute()
 
-        assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
+        assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = "/",
@@ -91,11 +91,11 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun dotNotation() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
 
         val response = client.dotNotation().execute()
 
-        assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
+        assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = ".",
@@ -108,7 +108,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun rootWith500() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY).setResponseCode(500))
+        addResponse(MockResponse().setBody(responseBody).setResponseCode(500))
 
         val response = client.root().execute()
 
@@ -142,11 +142,11 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun customHttpMethod() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
 
         val response = client.customHTTPMethod().execute()
 
-        assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
+        assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = "/custom/method",
@@ -159,11 +159,11 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun useUriPlaceHolder() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
 
         val response = client.getWithPlaceHolderValue("userId", "headerValue").execute()
 
-        assertResponse(response, HttpURLConnection.HTTP_OK, RESPONSE_OBJECT)
+        assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = "api/users/{userId}/foo",
@@ -176,7 +176,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun async() {
-        addResponse(MockResponse().setBody(RESPONSE_BODY))
+        addResponse(MockResponse().setBody(responseBody))
 
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject?> {
