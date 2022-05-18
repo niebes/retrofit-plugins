@@ -10,7 +10,8 @@ class StatsDMetricsRecorder(
 ) : MetricsRecorder {
     private val log = LoggerFactory.getLogger(StatsDMetricsRecorder::class.java)
     override fun recordTiming(tags: Map<String, String>, duration: Duration) {
-        log.info("measure {} with tags {}", KEY, tags)
+        if (log.isDebugEnabled)
+            log.debug("measure {} with tags {}", KEY, tags)
         statsDClient.histogram(KEY, duration.toMillis(), *asTagsArray(tags))
     }
 
