@@ -23,7 +23,7 @@ class RetrofitCallMetricsCollector(
             "async" to async.toString(),
             "series" to (HttpSeries.fromHttpStatus(response.code())?.name ?: "UNKNOWN"),
             "status" to response.code().toString(),
-            "exception" to "None",
+            "exception" to "None"
         ),
         duration
     )

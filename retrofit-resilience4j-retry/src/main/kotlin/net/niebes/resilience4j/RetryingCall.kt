@@ -15,19 +15,21 @@ class RetryingCall<T> internal constructor(
 ) : Call<T> {
 
     override fun execute(): Response<T> =
-        if (runWithRetry(request()))
+        if (runWithRetry(request())) {
             retry.executeCallable { executableCall().execute() }
-        else
+        } else {
             executableCall().execute()
+        }
 
     override fun enqueue(callback: Callback<T>) = wrappedCall.enqueue(retriedCallback(callback))
 
     private fun retriedCallback(callback: Callback<T>): Callback<T> = object : Callback<T> {
         override fun onResponse(call: Call<T>, response: Response<T>) =
-            if (runWithRetry(request()) && retryContext.onResult(response))
+            if (runWithRetry(request()) && retryContext.onResult(response)) {
                 executableCall().enqueue(retriedCallback(callback))
-            else
+            } else {
                 callback.onResponse(call, response)
+            }
 
         override fun onFailure(call: Call<T>, throwable: Throwable) =
             if (runWithRetry(request())) {
@@ -37,8 +39,10 @@ class RetryingCall<T> internal constructor(
                 } catch (ignored: Throwable) {
                     callback.onFailure(call, throwable)
                 }
-            } else
+            } else {
+                // throws the throwable when tries are exhausted
                 callback.onFailure(call, throwable)
+            }
 
         /**
          * resilience4j accepts exceptions only
@@ -50,10 +54,11 @@ class RetryingCall<T> internal constructor(
     override fun clone(): Call<T> = RetryingCall(executableCall(), retry, runWithRetry, retryContext)
 
     private fun executableCall(): Call<T> =
-        if (wrappedCall.isExecuted)
+        if (wrappedCall.isExecuted) {
             wrappedCall.clone()
-        else
+        } else {
             wrappedCall
+        }
 
     override fun isExecuted(): Boolean = wrappedCall.isExecuted
 
