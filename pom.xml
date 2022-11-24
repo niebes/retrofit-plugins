@@ -223,7 +223,7 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <keyname>A24DEDBE0C1A04DD</keyname>
+                            <keyname>F9BD4EE25C9E4341</keyname>
                         </configuration>
                     </execution>
                 </executions>
