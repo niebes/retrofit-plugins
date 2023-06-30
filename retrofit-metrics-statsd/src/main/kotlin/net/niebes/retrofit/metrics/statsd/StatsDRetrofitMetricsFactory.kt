@@ -4,5 +4,5 @@ import com.timgroup.statsd.StatsDClient
 import net.niebes.retrofit.metrics.RetrofitMetricsFactory
 
 class StatsDRetrofitMetricsFactory(
-    statsDClient: StatsDClient
+    statsDClient: StatsDClient,
 ) : RetrofitMetricsFactory(StatsDMetricsRecorder(statsDClient))

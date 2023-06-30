@@ -206,7 +206,7 @@ class StatsDRetrofitMetricsFactoryTest {
         method: String,
         status: String,
         series: String,
-        aysnc: String
+        aysnc: String,
     ) {
         verify(statsD).histogram(
             eq("http.client.requests"), anyLong(),
@@ -225,7 +225,7 @@ class StatsDRetrofitMetricsFactoryTest {
         path: String,
         method: String,
         aysnc: String,
-        exception: String
+        exception: String,
     ) {
         verify(statsD).histogram(
             eq("http.client.requests"), anyLong(),
@@ -255,7 +255,7 @@ class StatsDRetrofitMetricsFactoryTest {
         @GET("api/users/{userId}/foo")
         fun getWithPlaceHolderValue(
             @Path("userId") userId: String,
-            @Header("some") someHeader: String
+            @Header("some") someHeader: String,
         ): Call<NamedObject>
     }
 

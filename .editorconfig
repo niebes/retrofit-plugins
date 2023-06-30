@@ -21,6 +21,7 @@ trim_trailing_whitespace=true
 #No * imports.
 wildcard_import_limit=0
 kotlin_imports_layout=idea
+ij_kotlin_allow_trailing_comma_on_call_site = false
 
 
 [*.{yml,yaml,md}]

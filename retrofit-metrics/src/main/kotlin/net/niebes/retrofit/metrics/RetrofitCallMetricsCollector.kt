@@ -7,14 +7,14 @@ import java.time.Duration
 class RetrofitCallMetricsCollector(
     private val baseUrl: String,
     private val uri: String,
-    private val metricsRecorder: MetricsRecorder
+    private val metricsRecorder: MetricsRecorder,
 ) {
 
     fun measureRequestDuration(
         duration: Duration,
         request: Request,
         response: Response<out Any?>,
-        async: Boolean
+        async: Boolean,
     ) = metricsRecorder.recordTiming(
         mapOf(
             "base_url" to baseUrl,
@@ -32,7 +32,7 @@ class RetrofitCallMetricsCollector(
         duration: Duration,
         request: Request,
         throwable: Throwable,
-        async: Boolean
+        async: Boolean,
     ) = metricsRecorder.recordTiming(
         mapOf(
             "base_url" to baseUrl,

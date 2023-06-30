@@ -304,7 +304,7 @@ internal class RetryCallFactoryTest {
     }
 
     private fun MockWebServer.getRecordedRequests(
-        maxDuration: Duration = Duration.ofMillis(100)
+        maxDuration: Duration = Duration.ofMillis(100),
     ): List<RecordedRequest> = generateSequence {
         takeRequest(maxDuration.toMillis(), TimeUnit.MILLISECONDS)
     }.toList()
