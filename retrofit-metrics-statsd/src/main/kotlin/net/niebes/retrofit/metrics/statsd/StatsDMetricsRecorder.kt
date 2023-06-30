@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 
 class StatsDMetricsRecorder(
-    private val statsDClient: StatsDClient
+    private val statsDClient: StatsDClient,
 ) : MetricsRecorder {
     private val log = LoggerFactory.getLogger(StatsDMetricsRecorder::class.java)
     override fun recordTiming(tags: Map<String, String>, duration: Duration) {

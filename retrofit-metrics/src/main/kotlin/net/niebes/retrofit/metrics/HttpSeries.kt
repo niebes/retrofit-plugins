@@ -5,7 +5,8 @@ enum class HttpSeries(private val value: Int) {
     SUCCESSFUL(2),
     REDIRECTION(3),
     CLIENT_ERROR(4),
-    SERVER_ERROR(5);
+    SERVER_ERROR(5),
+    ;
 
     companion object {
         fun fromHttpStatus(status: Int): HttpSeries? =

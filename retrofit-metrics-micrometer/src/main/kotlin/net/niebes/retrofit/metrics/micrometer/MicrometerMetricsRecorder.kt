@@ -9,7 +9,7 @@ import java.time.Duration
 
 class MicrometerMetricsRecorder(
     private val meterRegistry: MeterRegistry,
-    customMetricsKey: String?
+    customMetricsKey: String?,
 ) : MetricsRecorder {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
     private val metricsKey = customMetricsKey ?: DEFAULT_METRICS_KEY

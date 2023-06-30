@@ -13,7 +13,7 @@ import java.lang.reflect.Type
  */
 class RetryCallFactory(
     private val retry: Retry = Retry.ofDefaults("RetryCallFactory-default"),
-    private val shouldRetry: Request.() -> Boolean = { method == "GET" }
+    private val shouldRetry: Request.() -> Boolean = { method == "GET" },
 ) : CallAdapter.Factory() {
     override fun get(returnType: Type, annotations: Array<Annotation>, retrofit: Retrofit): CallAdapter<*, *>? {
         if (getRawType(returnType) != Call::class.java) {

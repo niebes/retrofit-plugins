@@ -6,5 +6,5 @@ import net.niebes.retrofit.metrics.RetrofitMetricsFactory
 
 class MicrometerRetrofitMetricsFactory(
     meterRegistry: MeterRegistry = Metrics.globalRegistry,
-    customMetricsKey: String? = null
+    customMetricsKey: String? = null,
 ) : RetrofitMetricsFactory(MicrometerMetricsRecorder(meterRegistry, customMetricsKey))
