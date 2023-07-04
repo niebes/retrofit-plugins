@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.niebes</groupId>
     <artifactId>retrofit-plugins</artifactId>
-    <version>1.15.0-SNAPSHOT</version>
+    <version>1.15.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>retrofit-resilience4j-retry</module>
