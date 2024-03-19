@@ -46,7 +46,7 @@
         <java.version>1.8</java.version>
 
         <!-- lib versions -->
-        <retrofit.version>2.9.0</retrofit.version>
+        <retrofit.version>2.10.0</retrofit.version>
         <okhttp.version>4.12.0</okhttp.version>
 
         <!-- Plugins / Tests -->
