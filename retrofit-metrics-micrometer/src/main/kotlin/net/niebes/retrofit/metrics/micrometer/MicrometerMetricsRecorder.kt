@@ -15,7 +15,8 @@ class MicrometerMetricsRecorder(
     private val metricsKey = customMetricsKey ?: DEFAULT_METRICS_KEY
 
     override fun recordTiming(tags: Map<String, String>, duration: Duration) {
-        log.info("measure {} with tags {} duration {}ms", metricsKey, tags, duration.toMillis())
+        if (log.isDebugEnabled)
+            log.debug("measure {} with tags {} duration {}ms", metricsKey, tags, duration.toMillis())
         meterRegistry.timer(metricsKey, asTags(tags)).record(duration)
     }
 
