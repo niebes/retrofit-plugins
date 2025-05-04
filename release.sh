@@ -1,12 +1,8 @@
 #!/bin/sh -ex
 
-: ${1?"Usage: $0 <[pre]major|[pre]minor|[pre]patch|prerelease>"}
-
-#./mvnw scm:check-local-modification
-
-current=1.17.0
-release=1.17.1
-next=1.18.0
+current=1.18.0
+release=1.18.1
+next=1.19.0
 
 git checkout -b release/${release}
 
