@@ -1,7 +1,7 @@
 #!/bin/sh -ex
 
-current=1.18.0
-release=1.18.1
+current=1.18.2
+release=1.18.3
 next=1.19.0
 
 git checkout -b release/${release}
