@@ -6,7 +6,7 @@ import retrofit2.Call
 import retrofit2.CallAdapter
 import java.lang.reflect.Type
 
-class RetryCallAdapter<OriginalType, TargetType>(
+class RetryCallAdapter<OriginalType, TargetType : Any>(
     private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
     private val retry: Retry,
     private val shouldRetry: (Request) -> Boolean,

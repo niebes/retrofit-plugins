@@ -4,7 +4,7 @@ import retrofit2.Call
 import retrofit2.CallAdapter
 import java.lang.reflect.Type
 
-class MeasuredCallAdapter<OriginalType, TargetType> internal constructor(
+class MeasuredCallAdapter<OriginalType, TargetType : Any> internal constructor(
     private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
     private val metricsCollector: RetrofitCallMetricsCollector,
 ) : CallAdapter<OriginalType, TargetType> {
