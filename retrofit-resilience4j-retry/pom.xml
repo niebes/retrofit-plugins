@@ -8,6 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>retrofit-resilience4j-retry</name>
     <artifactId>retrofit-resilience4j-retry</artifactId>
     <description>Implementation to retry retrofit calls with resilience4j</description>
 
