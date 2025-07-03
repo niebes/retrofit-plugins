@@ -3,9 +3,9 @@ package net.niebes.retrofit.metrics.statsd
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.timgroup.statsd.StatsDClient
+import mockwebserver3.MockResponse
+import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.Matchers.`is`
 import org.junit.After
 import org.junit.Assert.assertThat
@@ -58,7 +58,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @After
     fun tearDown() {
-        server.shutdown()
+        server.close()
     }
 
     private fun addResponse(mockResponse: MockResponse) {
@@ -74,7 +74,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun root() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
 
         val response = client.root().execute()
 
@@ -91,7 +91,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun dotNotation() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
 
         val response = client.dotNotation().execute()
 
@@ -108,7 +108,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun rootWith500() {
-        addResponse(MockResponse().setBody(responseBody).setResponseCode(500))
+        addResponse(MockResponse(body = responseBody, code = 500))
 
         val response = client.root().execute()
 
@@ -142,7 +142,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun customHttpMethod() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
 
         val response = client.customHTTPMethod().execute()
 
@@ -159,7 +159,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun useUriPlaceHolder() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
 
         val response = client.getWithPlaceHolderValue("userId", "headerValue").execute()
 
@@ -176,7 +176,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun async() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
 
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject?> {

@@ -3,10 +3,10 @@ package net.niebes.resilience4j
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
+import mockwebserver3.MockResponse
+import mockwebserver3.MockWebServer
+import mockwebserver3.RecordedRequest
 import okhttp3.OkHttpClient
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -82,37 +82,29 @@ internal class RetryCallFactoryTest {
 
     @AfterEach
     fun after() {
-        server.shutdown()
+        server.close()
     }
 
     @Test
     fun `should not retry with sucessfull response`() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
         val response = client.root().execute()
         assertResponse(response, 200, responseObject)
-        val recordedRequests = server.getRecordedRequests()
-
-        assertThat(recordedRequests.map { it.path }).containsExactly("/")
+        val recordedRequests: List<RecordedRequest> = server.getRecordedRequests()
+        assertThat(recordedRequests.map { it.url.encodedPath }).containsExactly("/")
     }
 
     @Test
     fun `should use the first successful result within retry count`() {
         repeat(maxAttempts - 1) {
             addResponse(
-                MockResponse().apply {
-                    setBody(responseBody)
-                    setResponseCode(500)
-                }
+                MockResponse(code = 500, body = responseBody)
             )
         }
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
         val response = client.root().execute()
         assertResponse(response, 200, responseObject)
@@ -127,20 +119,20 @@ internal class RetryCallFactoryTest {
             client.root().execute()
         }
 
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly("/", "/", "/")
+        val actual = server.getRecordedRequests().map { it.url.encodedPath }
+        assertThat(actual).containsExactly("/", "/", "/")
     }
 
     @Test
     fun `should not retry POST by default`() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-                setResponseCode(500)
-            }
+            MockResponse(code = 500, body = responseBody)
         )
         client.createTransaction().execute()
 
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly("/new/nonidempotent/transaction")
+        assertThat(
+            server.getRecordedRequests().map { it.url.encodedPath }
+        ).containsExactly("/new/nonidempotent/transaction")
     }
 
     @Test
@@ -159,16 +151,13 @@ internal class RetryCallFactoryTest {
         )
         repeat(maxAttempts) {
             addResponse(
-                MockResponse().apply {
-                    setBody(responseBody)
-                    setResponseCode(500)
-                }
+                MockResponse(code = 500, body = responseBody)
             )
         }
 
         client.createTransaction().execute()
 
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
+        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/new/nonidempotent/transaction",
             "/new/nonidempotent/transaction",
             "/new/nonidempotent/transaction"
@@ -178,18 +167,12 @@ internal class RetryCallFactoryTest {
     @Test
     fun `should retry on async requests`() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-                setResponseCode(500)
-            }
+            MockResponse(code = 500, body = responseBody)
         )
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-                setResponseCode(500)
-            }
+            MockResponse(code = 500, body = responseBody)
         )
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
@@ -206,7 +189,7 @@ internal class RetryCallFactoryTest {
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
+        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/api/users/userId/foo",
             "/api/users/userId/foo",
             "/api/users/userId/foo"
@@ -217,10 +200,7 @@ internal class RetryCallFactoryTest {
     fun `should report success when no exception thrown`() {
         repeat(maxAttempts) {
             addResponse(
-                MockResponse().apply {
-                    setBody(responseBody)
-                    setResponseCode(500)
-                }
+                MockResponse(code = 500, body = responseBody)
             )
         }
         val latch = CountDownLatch(1)
@@ -239,7 +219,7 @@ internal class RetryCallFactoryTest {
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
+        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/api/users/userId/foo",
             "/api/users/userId/foo",
             "/api/users/userId/foo"
@@ -266,7 +246,7 @@ internal class RetryCallFactoryTest {
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(failures.get()).isEqualTo(1)
 
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
+        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/api/users/userId/foo",
             "/api/users/userId/foo",
             "/api/users/userId/foo"
@@ -277,10 +257,10 @@ internal class RetryCallFactoryTest {
     fun `should report success when retry condition not met but now exception thrown`() {
         repeat(maxAttempts) {
             addResponse(
-                MockResponse().apply {
-                    setBody(responseBody)
-                    setResponseCode(500)
-                }
+                MockResponse(
+                    code = 500,
+                    body = responseBody
+                )
             )
         }
         val latch = CountDownLatch(maxAttempts)
@@ -296,7 +276,7 @@ internal class RetryCallFactoryTest {
             }
         })
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
-        assertThat(server.getRecordedRequests().map { it.path }).containsExactly(
+        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/api/users/userId/foo",
             "/api/users/userId/foo",
             "/api/users/userId/foo"
@@ -327,7 +307,10 @@ internal class RetryCallFactoryTest {
         fun createTransaction(): Call<NamedObject>
 
         @GET("api/users/{userId}/foo")
-        fun getWithPlaceHolderValue(@Path("userId") userId: String, @Header("some") someHeader: String): Call<NamedObject>
+        fun getWithPlaceHolderValue(
+            @Path("userId") userId: String,
+            @Header("some") someHeader: String,
+        ): Call<NamedObject>
     }
 
     /**
