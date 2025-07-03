@@ -4,10 +4,10 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import mockwebserver3.MockResponse
+import mockwebserver3.MockWebServer
 import net.niebes.retrofit.metrics.HttpSeries
 import okhttp3.OkHttpClient
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.fail
@@ -61,15 +61,13 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @AfterEach
     fun after() {
-        server.shutdown()
+        server.close()
     }
 
     @Test
     fun root() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
         val response = client.root().execute()
         assertResponse(response, 200, responseObject)
@@ -87,10 +85,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     @Test
     fun rootWith500() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-                setResponseCode(500)
-            }
+            MockResponse(body = responseBody, code = 500)
         )
         val response = client.root().execute()
         assertThat(response.code()).isEqualTo(500)
@@ -101,9 +96,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     @Test
     fun dotNotation() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
         val response = client.dotNotation().execute()
         assertResponse(response, 200, responseObject)
@@ -114,9 +107,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     @Test
     fun customHttpMethod() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
         val response = client.customHTTPMethod().execute()
         assertResponse(response, 200, responseObject)
@@ -127,9 +118,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     @Test
     fun usesPlaceholder() {
         addResponse(
-            MockResponse().apply {
-                setBody(responseBody)
-            }
+            MockResponse(body = responseBody)
         )
 
         val response = client.getWithPlaceHolderValue("foo", "bar").execute()
@@ -139,7 +128,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
 
     @Test
     fun async() {
-        addResponse(MockResponse().setBody(responseBody))
+        addResponse(MockResponse(body = responseBody))
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
             @Override
@@ -207,7 +196,10 @@ internal class MicrometerRetrofitMetricsFactoryTest {
         fun customHTTPMethod(): Call<NamedObject>
 
         @GET("api/users/{userId}/foo")
-        fun getWithPlaceHolderValue(@Path("userId") userId: String, @Header("some") someHeader: String): Call<NamedObject>
+        fun getWithPlaceHolderValue(
+            @Path("userId") userId: String,
+            @Header("some") someHeader: String,
+        ): Call<NamedObject>
     }
 
     /**
