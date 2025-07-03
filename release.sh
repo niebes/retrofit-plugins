@@ -1,8 +1,10 @@
 #!/bin/sh -ex
 
-current=1.18.2
-release=1.18.3
-next=1.19.0
+# export GPG_TTY=$(tty)
+
+current=1.18.3
+release=1.19.0
+next=1.20.0
 
 git checkout -b release/${release}
 
