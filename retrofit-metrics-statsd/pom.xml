@@ -7,7 +7,7 @@
         <version>1.19.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>retrofit-metrics-statsd</name>
     <artifactId>retrofit-metrics-statsd</artifactId>
 
     <dependencyManagement>

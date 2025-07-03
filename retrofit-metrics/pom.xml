@@ -7,7 +7,7 @@
         <version>1.19.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>retrofit-metrics</name>
     <artifactId>retrofit-metrics</artifactId>
     <description>Implementation to retry retrofit calls with resilience4j</description>
 
