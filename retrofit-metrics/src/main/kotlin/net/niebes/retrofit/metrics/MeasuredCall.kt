@@ -1,25 +1,25 @@
 package net.niebes.retrofit.metrics
 
-import com.google.common.base.Stopwatch
 import okhttp3.Request
 import okio.Timeout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.Duration
 
 class MeasuredCall<T> internal constructor(
     private val wrappedCall: Call<T>,
     private val metrics: RetrofitCallMetricsCollector,
 ) : Call<T> {
     override fun execute(): Response<T> {
-        val stopwatch = Stopwatch.createStarted()
+        val startNanos = System.nanoTime()
         val request = wrappedCall.request()
         try {
             val response = wrappedCall.execute()
-            metrics.measureRequestDuration(stopwatch.elapsed(), request, response, false)
+            metrics.measureRequestDuration(elapsedSince(startNanos), request, response, false)
             return response
         } catch (exception: Exception) {
-            metrics.measureRequestException(stopwatch.elapsed(), request, exception, false)
+            metrics.measureRequestException(elapsedSince(startNanos), request, exception, false)
             throw exception
         }
     }
@@ -31,13 +31,13 @@ class MeasuredCall<T> internal constructor(
         callback: Callback<T>,
     ): Callback<T> =
         object : Callback<T> {
-            val stopwatch = Stopwatch.createStarted()
+            val startNanos = System.nanoTime()
 
             override fun onResponse(
                 call: Call<T>,
                 response: Response<T>,
             ) {
-                metrics.measureRequestDuration(stopwatch.elapsed(), request, response, true)
+                metrics.measureRequestDuration(elapsedSince(startNanos), request, response, true)
                 callback.onResponse(call, response)
             }
 
@@ -45,10 +45,12 @@ class MeasuredCall<T> internal constructor(
                 call: Call<T>,
                 throwable: Throwable,
             ) {
-                metrics.measureRequestException(stopwatch.elapsed(), request, throwable, true)
+                metrics.measureRequestException(elapsedSince(startNanos), request, throwable, true)
                 callback.onFailure(call, throwable)
             }
         }
+
+    private fun elapsedSince(startNanos: Long): Duration = Duration.ofNanos(System.nanoTime() - startNanos)
 
     override fun isExecuted(): Boolean = wrappedCall.isExecuted
 
