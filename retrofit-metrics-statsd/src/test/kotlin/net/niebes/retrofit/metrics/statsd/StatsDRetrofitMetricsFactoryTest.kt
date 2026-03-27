@@ -6,8 +6,7 @@ import com.timgroup.statsd.StatsDClient
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
@@ -76,8 +75,8 @@ class StatsDRetrofitMetricsFactoryTest {
         status: Int,
         body: Any,
     ) {
-        assertThat(response.code(), `is`(status))
-        assertThat(response.body(), `is`(body))
+        assertThat(response.code()).isEqualTo(status)
+        assertThat(response.body()).isEqualTo(body)
     }
 
     @Test
@@ -120,7 +119,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
         val response = client.root().execute()
 
-        assertThat(response.code(), `is`(500))
+        assertThat(response.code()).isEqualTo(500)
         verifyRequestMetrics(
             baseUrl = baseUrl(),
             path = "/",
