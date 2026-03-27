@@ -27,13 +27,19 @@ internal class MeasuredCallTest {
             }
         }
 
-    private val request = Request.Builder().url("https://example.com/test").get().build()
+    private val request =
+        Request
+            .Builder()
+            .url("https://example.com/test")
+            .get()
+            .build()
     private val collector = RetrofitCallMetricsCollector("https://example.com/", "test", metricsRecorder)
 
     @Test
     fun `execute records metrics on success`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -67,7 +73,8 @@ internal class MeasuredCallTest {
     @Test
     fun `enqueue records metrics on async success`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(201)
@@ -95,7 +102,7 @@ internal class MeasuredCallTest {
                 ) {
                     latch.countDown()
                 }
-            },
+            }
         )
         latch.await(1, TimeUnit.SECONDS)
 
@@ -129,7 +136,7 @@ internal class MeasuredCallTest {
                     receivedError = t
                     latch.countDown()
                 }
-            },
+            }
         )
         latch.await(1, TimeUnit.SECONDS)
 
@@ -141,7 +148,8 @@ internal class MeasuredCallTest {
     @Test
     fun `clone returns new MeasuredCall`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -159,7 +167,8 @@ internal class MeasuredCallTest {
     @Test
     fun `delegates cancel and status to wrapped call`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -176,7 +185,8 @@ internal class MeasuredCallTest {
     @Test
     fun `request delegates to wrapped call`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -222,7 +232,11 @@ internal class MeasuredCallTest {
 
         override fun request(): Request =
             response?.raw()?.request
-                ?: Request.Builder().url("https://example.com/test").get().build()
+                ?: Request
+                    .Builder()
+                    .url("https://example.com/test")
+                    .get()
+                    .build()
 
         override fun timeout(): Timeout = Timeout.NONE
     }

@@ -26,15 +26,21 @@ internal class RetrofitCallMetricsCollectorTest {
         RetrofitCallMetricsCollector(
             "https://api.example.com/",
             "users/{id}",
-            metricsRecorder,
+            metricsRecorder
         )
 
-    private val request = Request.Builder().url("https://api.example.com/users/42").get().build()
+    private val request =
+        Request
+            .Builder()
+            .url("https://api.example.com/users/42")
+            .get()
+            .build()
 
     @Test
     fun `measureRequestDuration records correct tags for successful response`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -59,7 +65,8 @@ internal class RetrofitCallMetricsCollectorTest {
     @Test
     fun `measureRequestDuration records async tag correctly`() {
         val okResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(200)
@@ -76,7 +83,8 @@ internal class RetrofitCallMetricsCollectorTest {
     @Test
     fun `measureRequestDuration records server error series`() {
         val errorResponse =
-            okhttp3.Response.Builder()
+            okhttp3.Response
+                .Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_2)
                 .code(503)
@@ -120,5 +128,4 @@ internal class RetrofitCallMetricsCollectorTest {
         assertThat(tags).containsEntry("async", "true")
         assertThat(tags).containsEntry("exception", "IOException")
     }
-
 }

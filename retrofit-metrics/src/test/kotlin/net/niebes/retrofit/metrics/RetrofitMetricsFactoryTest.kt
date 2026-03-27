@@ -19,7 +19,6 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 internal class RetrofitMetricsFactoryTest {
     private val recordedCalls = mutableListOf<Pair<Map<String, String>, Duration>>()
