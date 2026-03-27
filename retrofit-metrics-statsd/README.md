@@ -8,7 +8,7 @@ this plugin adds rate and p99 metrics into `http.client.requests` for all reques
 | method    | http method                                      |
 | async     | true for `execute()` false for `enqueue()`       |
 | status    | response status or `Exception`                   |
-| series    | response status family or `EXCEPTION             |
+| series    | response status family or `EXCEPTION`            |
 | exception | `simpleName` of the response exception or `None` |
 
 
