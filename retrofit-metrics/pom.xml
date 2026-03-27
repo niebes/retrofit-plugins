@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>retrofit-metrics</name>
     <artifactId>retrofit-metrics</artifactId>
-    <description>Implementation to retry retrofit calls with resilience4j</description>
+    <description>Core metrics interfaces and call adapter for Retrofit</description>
 
     <dependencyManagement>
         <dependencies>
