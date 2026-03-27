@@ -92,7 +92,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "GET",
             status = "200",
             series = "SUCCESSFUL",
-            aysnc = "false"
+            async = "false"
         )
     }
 
@@ -109,7 +109,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "GET",
             status = "200",
             series = "SUCCESSFUL",
-            aysnc = "false"
+            async = "false"
         )
     }
 
@@ -126,7 +126,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "GET",
             status = "500",
             series = "SERVER_ERROR",
-            aysnc = "false"
+            async = "false"
         )
     }
 
@@ -142,7 +142,7 @@ class StatsDRetrofitMetricsFactoryTest {
             baseUrl = baseUrl(),
             path = "/",
             method = "GET",
-            aysnc = "false",
+            async = "false",
             exception = "SocketTimeoutException"
         )
     }
@@ -160,7 +160,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "FOO",
             status = "200",
             series = "SUCCESSFUL",
-            aysnc = "false"
+            async = "false"
         )
     }
 
@@ -177,7 +177,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "GET",
             status = "200",
             series = "SUCCESSFUL",
-            aysnc = "false"
+            async = "false"
         )
     }
 
@@ -211,7 +211,7 @@ class StatsDRetrofitMetricsFactoryTest {
             method = "GET",
             status = "200",
             series = "SUCCESSFUL",
-            aysnc = "true"
+            async = "true"
         )
     }
 
@@ -221,7 +221,7 @@ class StatsDRetrofitMetricsFactoryTest {
         method: String,
         status: String,
         series: String,
-        aysnc: String,
+        async: String,
     ) {
         verify(statsD).histogram(
             eq("http.client.requests"),
@@ -229,7 +229,7 @@ class StatsDRetrofitMetricsFactoryTest {
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),
-            eq("async:$aysnc"),
+            eq("async:$async"),
             eq("series:$series"),
             eq("status:$status"),
             eq("exception:None")
@@ -240,7 +240,7 @@ class StatsDRetrofitMetricsFactoryTest {
         baseUrl: String,
         path: String,
         method: String,
-        aysnc: String,
+        async: String,
         exception: String,
     ) {
         verify(statsD).histogram(
@@ -249,7 +249,7 @@ class StatsDRetrofitMetricsFactoryTest {
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),
-            eq("async:$aysnc"),
+            eq("async:$async"),
             eq("exception:$exception"),
             eq("series:EXCEPTION"),
             eq("status:Exception")
