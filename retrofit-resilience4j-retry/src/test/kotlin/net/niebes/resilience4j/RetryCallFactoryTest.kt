@@ -31,54 +31,57 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal class RetryCallFactoryTest {
     companion object {
-        const val maxAttempts = 3
+        const val MAX_ATTEMPTS = 3
     }
 
     private val responseBody = "{ \"name\": \"The body with no name\" }"
     private val responseObject = NamedObject("The body with no name")
     private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
-    private val retryConfig: RetryConfig = RetryConfig.custom<Response<out Any?>>()
-        .waitDuration(Duration.ofMillis(10))
-        .retryOnResult { response -> response.code() in 500..599 }
-        .maxAttempts(maxAttempts)
-        .build()
+    private val retryConfig: RetryConfig =
+        RetryConfig
+            .custom<Response<out Any?>>()
+            .waitDuration(Duration.ofMillis(10))
+            .retryOnResult { response -> response.code() in 500..599 }
+            .maxAttempts(MAX_ATTEMPTS)
+            .build()
 
     @BeforeEach
     fun before() {
         server = MockWebServer()
         server.start()
-        client = createClient(
-            RetryCallFactory(
-                Retry.of("test", retryConfig).apply {
-                    with(eventPublisher) {
-                        onSuccess { success -> println("success $success") }
-                        onError { error -> println("error $error") }
-                        onRetry { retry -> println("retry $retry") }
-                        onIgnoredError { ignoredError -> println("error $ignoredError") }
+        client =
+            createClient(
+                RetryCallFactory(
+                    Retry.of("test", retryConfig).apply {
+                        with(eventPublisher) {
+                            onSuccess { success -> println("success $success") }
+                            onError { error -> println("error $error") }
+                            onRetry { retry -> println("retry $retry") }
+                            onIgnoredError { ignoredError -> println("error $ignoredError") }
+                        }
                     }
-                }
+                )
             )
-        )
     }
 
     private fun createClient(retryCallFactory: RetryCallFactory): SomeClient =
-        Retrofit.Builder()
+        Retrofit
+            .Builder()
             .client(
-                OkHttpClient.Builder()
+                OkHttpClient
+                    .Builder()
                     .connectTimeout(Duration.ofMillis(100))
                     .readTimeout(Duration.ofMillis(100))
                     .writeTimeout(Duration.ofMillis(100))
                     .build()
-            )
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            ).addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
             .addCallAdapterFactory(retryCallFactory)
             .baseUrl(baseUrl())
             .build()
             .create(SomeClient::class.java)
 
-    private fun addResponse(mockResponse: MockResponse) =
-        server.enqueue(mockResponse)
+    private fun addResponse(mockResponse: MockResponse) = server.enqueue(mockResponse)
 
     @AfterEach
     fun after() {
@@ -98,7 +101,7 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should use the first successful result within retry count`() {
-        repeat(maxAttempts - 1) {
+        repeat(MAX_ATTEMPTS - 1) {
             addResponse(
                 MockResponse(code = 500, body = responseBody)
             )
@@ -110,7 +113,7 @@ internal class RetryCallFactoryTest {
         assertResponse(response, 200, responseObject)
         val recordedRequests = server.getRecordedRequests()
 
-        assertThat(recordedRequests.size).isEqualTo(maxAttempts)
+        assertThat(recordedRequests.size).isEqualTo(MAX_ATTEMPTS)
     }
 
     @Test
@@ -137,19 +140,21 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should retry POST when configured`() {
-        client = createClient(
-            RetryCallFactory(
-                Retry.of(
-                    "test",
-                    retryConfig
-                )
-            ) {
-                method == "GET" || setOf(
-                    "new/nonidempotent/transaction".split("/")
-                ).contains(url.pathSegments)
-            }
-        )
-        repeat(maxAttempts) {
+        client =
+            createClient(
+                RetryCallFactory(
+                    Retry.of(
+                        "test",
+                        retryConfig
+                    )
+                ) {
+                    method == "GET" ||
+                        setOf(
+                            "new/nonidempotent/transaction".split("/")
+                        ).contains(url.pathSegments)
+                }
+            )
+        repeat(MAX_ATTEMPTS) {
             addResponse(
                 MockResponse(code = 500, body = responseBody)
             )
@@ -175,18 +180,26 @@ internal class RetryCallFactoryTest {
         addResponse(MockResponse(body = responseBody))
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
-            @Override
-            override fun onResponse(call: Call<NamedObject>, response: Response<NamedObject>) {
-                successes.incrementAndGet()
-                latch.countDown()
-            }
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject> {
+                @Override
+                override fun onResponse(
+                    call: Call<NamedObject>,
+                    response: Response<NamedObject>,
+                ) {
+                    successes.incrementAndGet()
+                    latch.countDown()
+                }
 
-            @Override
-            override fun onFailure(call: Call<NamedObject>, t: Throwable) {
-                fail("no exception expected", t)
+                @Override
+                override fun onFailure(
+                    call: Call<NamedObject>,
+                    t: Throwable,
+                ) {
+                    fail("no exception expected", t)
+                }
             }
-        })
+        )
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
         assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
@@ -198,25 +211,33 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should report success when no exception thrown`() {
-        repeat(maxAttempts) {
+        repeat(MAX_ATTEMPTS) {
             addResponse(
                 MockResponse(code = 500, body = responseBody)
             )
         }
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
-            @Override
-            override fun onResponse(call: Call<NamedObject>, response: Response<NamedObject>) {
-                successes.incrementAndGet()
-                latch.countDown()
-            }
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject> {
+                @Override
+                override fun onResponse(
+                    call: Call<NamedObject>,
+                    response: Response<NamedObject>,
+                ) {
+                    successes.incrementAndGet()
+                    latch.countDown()
+                }
 
-            @Override
-            override fun onFailure(call: Call<NamedObject>, t: Throwable) {
-                fail("no exception expected", t)
+                @Override
+                override fun onFailure(
+                    call: Call<NamedObject>,
+                    t: Throwable,
+                ) {
+                    fail("no exception expected", t)
+                }
             }
-        })
+        )
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(successes.get()).isEqualTo(1)
         assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
@@ -230,18 +251,26 @@ internal class RetryCallFactoryTest {
     fun `should report error when all async calls threw exceptions`() {
         val latch = CountDownLatch(1)
         val failures = AtomicInteger(0)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
-            @Override
-            override fun onResponse(call: Call<NamedObject>, response: Response<NamedObject>) {
-                fail("no success expected")
-            }
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject> {
+                @Override
+                override fun onResponse(
+                    call: Call<NamedObject>,
+                    response: Response<NamedObject>,
+                ) {
+                    fail("no success expected")
+                }
 
-            @Override
-            override fun onFailure(call: Call<NamedObject>, throwable: Throwable) {
-                failures.incrementAndGet()
-                latch.countDown()
+                @Override
+                override fun onFailure(
+                    call: Call<NamedObject>,
+                    throwable: Throwable,
+                ) {
+                    failures.incrementAndGet()
+                    latch.countDown()
+                }
             }
-        })
+        )
 
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(failures.get()).isEqualTo(1)
@@ -255,7 +284,7 @@ internal class RetryCallFactoryTest {
 
     @Test
     fun `should report success when retry condition not met but now exception thrown`() {
-        repeat(maxAttempts) {
+        repeat(MAX_ATTEMPTS) {
             addResponse(
                 MockResponse(
                     code = 500,
@@ -263,18 +292,26 @@ internal class RetryCallFactoryTest {
                 )
             )
         }
-        val latch = CountDownLatch(maxAttempts)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
-            @Override
-            override fun onResponse(call: Call<NamedObject>, response: Response<NamedObject>) {
-                latch.countDown()
-            }
+        val latch = CountDownLatch(MAX_ATTEMPTS)
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject> {
+                @Override
+                override fun onResponse(
+                    call: Call<NamedObject>,
+                    response: Response<NamedObject>,
+                ) {
+                    latch.countDown()
+                }
 
-            @Override
-            override fun onFailure(call: Call<NamedObject>, t: Throwable) {
-                fail("no exception expected", t)
+                @Override
+                override fun onFailure(
+                    call: Call<NamedObject>,
+                    t: Throwable,
+                ) {
+                    fail("no exception expected", t)
+                }
             }
-        })
+        )
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
             "/api/users/userId/foo",
@@ -283,15 +320,18 @@ internal class RetryCallFactoryTest {
         )
     }
 
-    private fun MockWebServer.getRecordedRequests(
-        maxDuration: Duration = Duration.ofMillis(100),
-    ): List<RecordedRequest> = generateSequence {
-        takeRequest(maxDuration.toMillis(), TimeUnit.MILLISECONDS)
-    }.toList()
+    private fun MockWebServer.getRecordedRequests(maxDuration: Duration = Duration.ofMillis(100)): List<RecordedRequest> =
+        generateSequence {
+            takeRequest(maxDuration.toMillis(), TimeUnit.MILLISECONDS)
+        }.toList()
 
     private fun baseUrl() = server.url("/").toString()
 
-    private fun assertResponse(response: Response<NamedObject>, status: Int, body: Any?) {
+    private fun assertResponse(
+        response: Response<NamedObject>,
+        status: Int,
+        body: Any?,
+    ) {
         assertThat(response.code()).isEqualTo(status)
         assertThat(response.body()).isEqualTo(body)
     }
@@ -316,7 +356,9 @@ internal class RetryCallFactoryTest {
     /**
      * A test data class
      */
-    data class NamedObject(val name: String) {
+    data class NamedObject(
+        val name: String,
+    ) {
         override fun hashCode() = Objects.hashCode(this.name)
 
         override fun equals(other: Any?) = (other as NamedObject).name == name

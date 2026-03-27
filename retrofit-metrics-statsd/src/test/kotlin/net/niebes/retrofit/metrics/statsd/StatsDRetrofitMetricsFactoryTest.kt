@@ -41,17 +41,21 @@ class StatsDRetrofitMetricsFactoryTest {
     fun setUp() {
         server = MockWebServer()
         server.start()
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(1000, TimeUnit.MILLISECONDS)
-            .readTimeout(1000, TimeUnit.MILLISECONDS)
-            .writeTimeout(1000, TimeUnit.MILLISECONDS)
-            .build()
-        val retrofit = Retrofit.Builder()
-            .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(ObjectMapper().registerKotlinModule()))
-            .addCallAdapterFactory(StatsDRetrofitMetricsFactory(statsD))
-            .baseUrl(server.url("/").toString())
-            .build()
+        val okHttpClient =
+            OkHttpClient
+                .Builder()
+                .connectTimeout(1000, TimeUnit.MILLISECONDS)
+                .readTimeout(1000, TimeUnit.MILLISECONDS)
+                .writeTimeout(1000, TimeUnit.MILLISECONDS)
+                .build()
+        val retrofit =
+            Retrofit
+                .Builder()
+                .client(okHttpClient)
+                .addConverterFactory(JacksonConverterFactory.create(ObjectMapper().registerKotlinModule()))
+                .addCallAdapterFactory(StatsDRetrofitMetricsFactory(statsD))
+                .baseUrl(server.url("/").toString())
+                .build()
         client = retrofit.create(SomeClient::class.java)
         reset(statsD)
     }
@@ -67,7 +71,11 @@ class StatsDRetrofitMetricsFactoryTest {
 
     private fun baseUrl(): String = server.url("/").toString()
 
-    private fun assertResponse(response: Response<NamedObject>, status: Int, body: Any) {
+    private fun assertResponse(
+        response: Response<NamedObject>,
+        status: Int,
+        body: Any,
+    ) {
         assertThat(response.code(), `is`(status))
         assertThat(response.body(), `is`(body))
     }
@@ -179,15 +187,23 @@ class StatsDRetrofitMetricsFactoryTest {
         addResponse(MockResponse(body = responseBody))
 
         val latch = CountDownLatch(1)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject?> {
-            override fun onResponse(call: Call<NamedObject?>, response: Response<NamedObject?>) {
-                latch.countDown()
-            }
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject?> {
+                override fun onResponse(
+                    call: Call<NamedObject?>,
+                    response: Response<NamedObject?>,
+                ) {
+                    latch.countDown()
+                }
 
-            override fun onFailure(call: Call<NamedObject?>, t: Throwable) {
-                fail("no exception expected")
+                override fun onFailure(
+                    call: Call<NamedObject?>,
+                    t: Throwable,
+                ) {
+                    fail("no exception expected")
+                }
             }
-        })
+        )
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
 
         verifyRequestMetrics(
@@ -209,7 +225,8 @@ class StatsDRetrofitMetricsFactoryTest {
         aysnc: String,
     ) {
         verify(statsD).histogram(
-            eq("http.client.requests"), anyLong(),
+            eq("http.client.requests"),
+            anyLong(),
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),
@@ -228,7 +245,8 @@ class StatsDRetrofitMetricsFactoryTest {
         exception: String,
     ) {
         verify(statsD).histogram(
-            eq("http.client.requests"), anyLong(),
+            eq("http.client.requests"),
+            anyLong(),
             eq("base_url:$baseUrl"),
             eq("uri:$path"),
             eq("method:$method"),
@@ -259,5 +277,7 @@ class StatsDRetrofitMetricsFactoryTest {
         ): Call<NamedObject>
     }
 
-    data class NamedObject(val name: String)
+    data class NamedObject(
+        val name: String,
+    )
 }

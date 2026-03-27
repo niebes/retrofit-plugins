@@ -8,12 +8,13 @@ class MeasuredCallAdapter<OriginalType, TargetType : Any> internal constructor(
     private val nextCallAdapter: CallAdapter<OriginalType, TargetType>,
     private val metricsCollector: RetrofitCallMetricsCollector,
 ) : CallAdapter<OriginalType, TargetType> {
-
     override fun responseType(): Type = nextCallAdapter.responseType()
-    override fun adapt(call: Call<OriginalType>): TargetType = nextCallAdapter.adapt(
-        MeasuredCall(
-            call,
-            metricsCollector
+
+    override fun adapt(call: Call<OriginalType>): TargetType =
+        nextCallAdapter.adapt(
+            MeasuredCall(
+                call,
+                metricsCollector
+            )
         )
-    )
 }
