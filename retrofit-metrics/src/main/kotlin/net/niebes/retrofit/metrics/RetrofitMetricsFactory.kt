@@ -41,7 +41,8 @@ open class RetrofitMetricsFactory(
          */
         private fun getUri(annotations: Array<Annotation>): String? =
             annotations
-                .asSequence().firstNotNullOfOrNull { annotation ->
+                .asSequence()
+                .firstNotNullOfOrNull { annotation ->
                     when (annotation) {
                         is GET -> annotation.value
                         is POST -> annotation.value
