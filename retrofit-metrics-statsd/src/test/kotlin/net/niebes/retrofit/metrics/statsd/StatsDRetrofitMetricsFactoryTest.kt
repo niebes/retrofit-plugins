@@ -7,10 +7,10 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Assert.fail
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
@@ -36,7 +36,7 @@ class StatsDRetrofitMetricsFactoryTest {
     private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
 
-    @Before
+    @BeforeEach
     fun setUp() {
         server = MockWebServer()
         server.start()
@@ -59,7 +59,7 @@ class StatsDRetrofitMetricsFactoryTest {
         reset(statsD)
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         server.close()
     }
@@ -230,8 +230,8 @@ class StatsDRetrofitMetricsFactoryTest {
             eq("uri:$path"),
             eq("method:$method"),
             eq("async:$aysnc"),
-            eq("status:$status"),
             eq("series:$series"),
+            eq("status:$status"),
             eq("exception:None")
         )
     }
@@ -250,9 +250,9 @@ class StatsDRetrofitMetricsFactoryTest {
             eq("uri:$path"),
             eq("method:$method"),
             eq("async:$aysnc"),
-            eq("status:Exception"),
+            eq("exception:$exception"),
             eq("series:EXCEPTION"),
-            eq("exception:$exception")
+            eq("status:Exception")
         )
     }
 
