@@ -182,7 +182,6 @@ internal class RetryCallFactoryTest {
         val successes = AtomicInteger(0)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
-                @Override
                 override fun onResponse(
                     call: Call<NamedObject>,
                     response: Response<NamedObject>,
@@ -191,7 +190,6 @@ internal class RetryCallFactoryTest {
                     latch.countDown()
                 }
 
-                @Override
                 override fun onFailure(
                     call: Call<NamedObject>,
                     t: Throwable,
@@ -220,7 +218,6 @@ internal class RetryCallFactoryTest {
         val successes = AtomicInteger(0)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
-                @Override
                 override fun onResponse(
                     call: Call<NamedObject>,
                     response: Response<NamedObject>,
@@ -229,7 +226,6 @@ internal class RetryCallFactoryTest {
                     latch.countDown()
                 }
 
-                @Override
                 override fun onFailure(
                     call: Call<NamedObject>,
                     t: Throwable,
@@ -253,7 +249,6 @@ internal class RetryCallFactoryTest {
         val failures = AtomicInteger(0)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
-                @Override
                 override fun onResponse(
                     call: Call<NamedObject>,
                     response: Response<NamedObject>,
@@ -261,7 +256,6 @@ internal class RetryCallFactoryTest {
                     fail("no success expected")
                 }
 
-                @Override
                 override fun onFailure(
                     call: Call<NamedObject>,
                     throwable: Throwable,
@@ -295,7 +289,6 @@ internal class RetryCallFactoryTest {
         val latch = CountDownLatch(MAX_ATTEMPTS)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
-                @Override
                 override fun onResponse(
                     call: Call<NamedObject>,
                     response: Response<NamedObject>,
@@ -303,7 +296,6 @@ internal class RetryCallFactoryTest {
                     latch.countDown()
                 }
 
-                @Override
                 override fun onFailure(
                     call: Call<NamedObject>,
                     t: Throwable,
