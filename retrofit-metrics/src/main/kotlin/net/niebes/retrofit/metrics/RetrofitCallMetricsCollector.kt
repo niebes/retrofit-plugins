@@ -9,7 +9,6 @@ class RetrofitCallMetricsCollector(
     private val uri: String,
     private val metricsRecorder: MetricsRecorder,
 ) {
-
     fun measureRequestDuration(
         duration: Duration,
         request: Request,

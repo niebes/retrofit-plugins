@@ -12,11 +12,13 @@ class RetryCallAdapter<OriginalType, TargetType : Any>(
     private val shouldRetry: (Request) -> Boolean,
 ) : CallAdapter<OriginalType, TargetType> {
     override fun responseType(): Type = nextCallAdapter.responseType()
-    override fun adapt(call: Call<OriginalType>): TargetType = nextCallAdapter.adapt(
-        RetryingCall(
-            call,
-            retry,
-            shouldRetry
+
+    override fun adapt(call: Call<OriginalType>): TargetType =
+        nextCallAdapter.adapt(
+            RetryingCall(
+                call,
+                retry,
+                shouldRetry
+            )
         )
-    )
 }

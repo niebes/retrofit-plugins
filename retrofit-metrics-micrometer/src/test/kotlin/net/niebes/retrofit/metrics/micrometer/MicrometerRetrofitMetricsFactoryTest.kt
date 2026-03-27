@@ -40,18 +40,22 @@ internal class MicrometerRetrofitMetricsFactoryTest {
         server.start()
         meterRegistry = SimpleMeterRegistry()
 
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(1000, TimeUnit.MILLISECONDS)
-            .readTimeout(1000, TimeUnit.MILLISECONDS)
-            .writeTimeout(1000, TimeUnit.MILLISECONDS)
-            .build()
+        val okHttpClient =
+            OkHttpClient
+                .Builder()
+                .connectTimeout(1000, TimeUnit.MILLISECONDS)
+                .readTimeout(1000, TimeUnit.MILLISECONDS)
+                .writeTimeout(1000, TimeUnit.MILLISECONDS)
+                .build()
         val baseUrl = server.url("/")
-        val retrofit = Retrofit.Builder()
-            .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
-            .addCallAdapterFactory(MicrometerRetrofitMetricsFactory(meterRegistry))
-            .baseUrl(baseUrl.toString())
-            .build()
+        val retrofit =
+            Retrofit
+                .Builder()
+                .client(okHttpClient)
+                .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+                .addCallAdapterFactory(MicrometerRetrofitMetricsFactory(meterRegistry))
+                .baseUrl(baseUrl.toString())
+                .build()
         client = retrofit.create(SomeClient::class.java)
     }
 
@@ -130,30 +134,48 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     fun async() {
         addResponse(MockResponse(body = responseBody))
         val latch = CountDownLatch(1)
-        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(object : Callback<NamedObject> {
-            @Override
-            override fun onResponse(call: Call<NamedObject>, response: Response<NamedObject>) {
-                latch.countDown()
-            }
+        client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
+            object : Callback<NamedObject> {
+                @Override
+                override fun onResponse(
+                    call: Call<NamedObject>,
+                    response: Response<NamedObject>,
+                ) {
+                    latch.countDown()
+                }
 
-            @Override
-            override fun onFailure(call: Call<NamedObject>, t: Throwable) {
-                fail<Any>("no exception expected", t)
+                @Override
+                override fun onFailure(
+                    call: Call<NamedObject>,
+                    t: Throwable,
+                ) {
+                    fail<Any>("no exception expected", t)
+                }
             }
-        })
+        )
         latch.await(1, TimeUnit.SECONDS) // wait for async to complete
         assertThat(meter("GET", "api/users/{userId}/foo", baseUrl(), "200").count()).isEqualTo(1)
     }
 
     private fun baseUrl() = server.url("/").toString()
 
-    private fun assertResponse(response: Response<NamedObject>, status: Int, body: Any?) {
+    private fun assertResponse(
+        response: Response<NamedObject>,
+        status: Int,
+        body: Any?,
+    ) {
         assertThat(response.code()).isEqualTo(status)
         assertThat(response.body()).isEqualTo(body)
     }
 
-    private fun meter(method: String, path: String, baseUrl: String, status: String): Timer =
-        meterRegistry.get("http.client.requests")
+    private fun meter(
+        method: String,
+        path: String,
+        baseUrl: String,
+        status: String,
+    ): Timer =
+        meterRegistry
+            .get("http.client.requests")
             .tag("base_url", baseUrl)
             .tag("uri", path)
             .tag("method", method)
@@ -162,8 +184,14 @@ internal class MicrometerRetrofitMetricsFactoryTest {
             .tag("exception", "None")
             .timer()
 
-    private fun exceptionMeter(method: String, path: String, baseUrl: String, exception: String): Timer =
-        meterRegistry.get("http.client.requests")
+    private fun exceptionMeter(
+        method: String,
+        path: String,
+        baseUrl: String,
+        exception: String,
+    ): Timer =
+        meterRegistry
+            .get("http.client.requests")
             .tag("base_url", baseUrl)
             .tag("uri", path)
             .tag("method", method)
@@ -205,5 +233,7 @@ internal class MicrometerRetrofitMetricsFactoryTest {
     /**
      * A test data class
      */
-    data class NamedObject(val name: String)
+    data class NamedObject(
+        val name: String,
+    )
 }

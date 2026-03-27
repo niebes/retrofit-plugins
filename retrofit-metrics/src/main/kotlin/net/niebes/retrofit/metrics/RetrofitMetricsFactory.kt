@@ -16,7 +16,6 @@ import java.lang.reflect.Type
 open class RetrofitMetricsFactory(
     private var metricsRecorder: MetricsRecorder,
 ) : CallAdapter.Factory() {
-
     override operator fun get(
         returnType: Type,
         annotations: Array<Annotation>,
@@ -37,23 +36,24 @@ open class RetrofitMetricsFactory(
     }
 
     companion object {
-
         /**
          * fetches the url pattern to measure routes, not paths
          */
         private fun getUri(annotations: Array<Annotation>): String? =
-            annotations.asSequence().mapNotNull { annotation ->
-                when (annotation) {
-                    is GET -> annotation.value
-                    is POST -> annotation.value
-                    is PUT -> annotation.value
-                    is DELETE -> annotation.value
-                    is PATCH -> annotation.value
-                    is OPTIONS -> annotation.value
-                    is HEAD -> annotation.value
-                    is HTTP -> annotation.path
-                    else -> null
-                }
-            }.firstOrNull()
+            annotations
+                .asSequence()
+                .mapNotNull { annotation ->
+                    when (annotation) {
+                        is GET -> annotation.value
+                        is POST -> annotation.value
+                        is PUT -> annotation.value
+                        is DELETE -> annotation.value
+                        is PATCH -> annotation.value
+                        is OPTIONS -> annotation.value
+                        is HEAD -> annotation.value
+                        is HTTP -> annotation.path
+                        else -> null
+                    }
+                }.firstOrNull()
     }
 }

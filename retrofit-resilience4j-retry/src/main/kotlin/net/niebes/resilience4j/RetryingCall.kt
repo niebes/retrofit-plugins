@@ -13,7 +13,6 @@ class RetryingCall<T> internal constructor(
     private val runWithRetry: (Request) -> Boolean,
     private val retryContext: Retry.Context<Response<T>> = retry.context(), // otherwise we loose the retry count
 ) : Call<T> {
-
     override fun execute(): Response<T> =
         if (runWithRetry(request())) {
             retry.executeCallable { executableCall().execute() }
@@ -23,16 +22,21 @@ class RetryingCall<T> internal constructor(
 
     override fun enqueue(callback: Callback<T>) = wrappedCall.enqueue(retriedCallback(callback))
 
-    private fun retriedCallback(callback: Callback<T>): Callback<T> = object : Callback<T> {
-        override fun onResponse(call: Call<T>, response: Response<T>) =
-            if (runWithRetry(request()) && retryContext.onResult(response)) {
+    private fun retriedCallback(callback: Callback<T>): Callback<T> =
+        object : Callback<T> {
+            override fun onResponse(
+                call: Call<T>,
+                response: Response<T>,
+            ) = if (runWithRetry(request()) && retryContext.onResult(response)) {
                 executableCall().enqueue(retriedCallback(callback))
             } else {
                 callback.onResponse(call, response)
             }
 
-        override fun onFailure(call: Call<T>, throwable: Throwable) =
-            if (runWithRetry(request())) {
+            override fun onFailure(
+                call: Call<T>,
+                throwable: Throwable,
+            ) = if (runWithRetry(request())) {
                 try {
                     retryContext.onError(asException(throwable)) // throws the throwable when tries are exhausted
                     executableCall().enqueue(retriedCallback(callback))
@@ -44,12 +48,12 @@ class RetryingCall<T> internal constructor(
                 callback.onFailure(call, throwable)
             }
 
-        /**
-         * resilience4j accepts exceptions only
-         */
-        private fun asException(throwable: Throwable) =
-            if (throwable is Exception) throwable else RuntimeException("masked throwable", throwable)
-    }
+            /**
+             * resilience4j accepts exceptions only
+             */
+            private fun asException(throwable: Throwable) =
+                if (throwable is Exception) throwable else RuntimeException("masked throwable", throwable)
+        }
 
     override fun clone(): Call<T> = RetryingCall(executableCall(), retry, runWithRetry, retryContext)
 
