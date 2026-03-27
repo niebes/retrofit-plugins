@@ -350,9 +350,5 @@ internal class RetryCallFactoryTest {
      */
     data class NamedObject(
         val name: String,
-    ) {
-        override fun hashCode() = Objects.hashCode(this.name)
-
-        override fun equals(other: Any?) = (other as NamedObject).name == name
-    }
+    )
 }
