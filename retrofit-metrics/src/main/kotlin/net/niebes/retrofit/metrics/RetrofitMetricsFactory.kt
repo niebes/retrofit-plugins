@@ -14,7 +14,7 @@ import retrofit2.http.PUT
 import java.lang.reflect.Type
 
 open class RetrofitMetricsFactory(
-    private var metricsRecorder: MetricsRecorder,
+    private val metricsRecorder: MetricsRecorder,
 ) : CallAdapter.Factory() {
     override operator fun get(
         returnType: Type,

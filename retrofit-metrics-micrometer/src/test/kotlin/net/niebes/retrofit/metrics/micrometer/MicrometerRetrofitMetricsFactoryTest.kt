@@ -136,7 +136,6 @@ internal class MicrometerRetrofitMetricsFactoryTest {
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
-                @Override
                 override fun onResponse(
                     call: Call<NamedObject>,
                     response: Response<NamedObject>,
@@ -144,7 +143,6 @@ internal class MicrometerRetrofitMetricsFactoryTest {
                     latch.countDown()
                 }
 
-                @Override
                 override fun onFailure(
                     call: Call<NamedObject>,
                     t: Throwable,
