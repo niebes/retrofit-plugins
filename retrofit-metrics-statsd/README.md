@@ -1,4 +1,4 @@
-# retrofit metrics micrometer
+# retrofit metrics statsd
 this plugin adds rate and p99 metrics into `http.client.requests` for all requests including the tags
 
 | tag       | purpose                                          |

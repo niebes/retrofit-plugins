@@ -24,12 +24,13 @@ open class RetrofitMetricsFactory(
         if (getRawType(returnType) != Call::class.java) {
             return null
         }
+        val uri = getUri(annotations) ?: return null
         val nextCallAdapter = retrofit.nextCallAdapter(this, returnType, annotations)
         return MeasuredCallAdapter(
             nextCallAdapter,
             RetrofitCallMetricsCollector(
                 retrofit.baseUrl().toString(),
-                getUri(annotations)!!,
+                uri,
                 metricsRecorder
             )
         )
