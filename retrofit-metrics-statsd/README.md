@@ -1,15 +1,15 @@
 # retrofit metrics micrometer
 this plugin adds rate and p99 metrics into `http.client.requests` for all requests including the tags
 
-| tag           | purpose                                          |
-| ------------- |:-------------------------------------------------|
-| base_url      | base_url                                         |
-| uri           | uri with placeholders                            |
-| method        | http method                                      |
-| async         | true for `execute()` false for `enqueue()`       |
-| status        | response status or `Exception`                   |
-| series        | response status family or `EXCEPTION             |
-| exception     | `simpleName` of the response exception or `None` |
+| tag       | purpose                                          |
+|-----------|:-------------------------------------------------|
+| base_url  | base_url                                         |
+| uri       | uri with placeholders                            |
+| method    | http method                                      |
+| async     | true for `execute()` false for `enqueue()`       |
+| status    | response status or `Exception`                   |
+| series    | response status family or `EXCEPTION             |
+| exception | `simpleName` of the response exception or `None` |
 
 
 ## usage
