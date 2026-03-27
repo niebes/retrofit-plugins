@@ -52,7 +52,7 @@ class RetryingCall<T> internal constructor(
              * resilience4j accepts exceptions only
              */
             private fun asException(throwable: Throwable) =
-                if (throwable is Exception) throwable else RuntimeException("masked throwable", throwable)
+                throwable as? Exception ?: RuntimeException("masked throwable", throwable)
         }
 
     override fun clone(): Call<T> = RetryingCall(executableCall(), retry, runWithRetry, retryContext)
