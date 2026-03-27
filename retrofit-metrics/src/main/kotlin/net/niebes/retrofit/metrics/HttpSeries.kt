@@ -11,6 +11,6 @@ enum class HttpSeries(
     ;
 
     companion object {
-        fun fromHttpStatus(status: Int): HttpSeries? = values().firstOrNull { it.value == status / 100 }
+        fun fromHttpStatus(status: Int): HttpSeries? = entries.firstOrNull { it.value == status / 100 }
     }
 }
