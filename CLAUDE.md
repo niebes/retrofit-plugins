@@ -32,7 +32,7 @@ Two variant patterns exist:
 
 ### Test Infrastructure
 
-All integration tests use WireMock (`@WireMockTest` annotation with `WireMockRuntimeInfo` injected into `@BeforeEach`). Tests use `ScalarsConverterFactory` from `retrofit2:converter-scalars` for simple string responses. Shared test interfaces (e.g., `TestClient`) define Retrofit service methods used across test classes within a module.
+Integration tests use WireMock (`@WireMockTest` annotation). `WireMockRuntimeInfo` is either injected into `@BeforeEach` (metrics modules) or directly into test method parameters (resilience4j modules). Metrics tests use `JacksonConverterFactory`; resilience4j tests use `ScalarsConverterFactory`.
 
 ## Tech Stack
 
