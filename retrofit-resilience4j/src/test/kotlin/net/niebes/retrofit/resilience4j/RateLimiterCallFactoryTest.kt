@@ -76,7 +76,7 @@ internal class RateLimiterCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS)
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
         assertThat(responseRef.get().code()).isEqualTo(429)
         verify(0, getRequestedFor(urlEqualTo("/api/test")))
     }
@@ -132,7 +132,7 @@ internal class RateLimiterCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS)
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
         assertThat(responseRef.get().code()).isEqualTo(200)
         assertThat(responseRef.get().body()).isEqualTo("ok")
         verify(1, getRequestedFor(urlEqualTo("/api/test")))

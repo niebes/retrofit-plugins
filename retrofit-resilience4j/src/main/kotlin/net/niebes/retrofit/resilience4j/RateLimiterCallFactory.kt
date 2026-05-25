@@ -47,15 +47,16 @@ private class RateLimitingCall<T>(
     private val wrappedCall: Call<T>,
     private val rateLimiter: RateLimiter,
 ) : Call<T> {
-    override fun execute(): Response<T> =
+    override fun execute(): Response<T> {
         try {
             RateLimiter.waitForPermission(rateLimiter)
-            wrappedCall.execute()
         } catch (e: RequestNotPermitted) {
-            tooManyRequestsError()
+            return tooManyRequestsError()
         } catch (e: IllegalStateException) {
-            tooManyRequestsError()
+            return tooManyRequestsError()
         }
+        return wrappedCall.execute()
+    }
 
     override fun enqueue(callback: Callback<T>) {
         try {

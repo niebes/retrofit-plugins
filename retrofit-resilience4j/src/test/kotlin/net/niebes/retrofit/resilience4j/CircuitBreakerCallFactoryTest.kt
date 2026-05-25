@@ -123,7 +123,7 @@ internal class CircuitBreakerCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS)
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
         assertThat(failureRef.get()).isInstanceOf(CallNotPermittedException::class.java)
         verify(0, getRequestedFor(urlEqualTo("/api/test")))
     }
@@ -167,7 +167,7 @@ internal class CircuitBreakerCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS)
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
         assertThat(responseRef.get().code()).isEqualTo(200)
         assertThat(circuitBreaker.metrics.numberOfSuccessfulCalls).isEqualTo(1)
     }
@@ -226,7 +226,7 @@ internal class CircuitBreakerCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS)
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
         assertThat(responseRef.get().code()).isEqualTo(500)
         assertThat(circuitBreaker.metrics.numberOfFailedCalls).isEqualTo(1)
     }
@@ -247,6 +247,7 @@ internal class CircuitBreakerCallFactoryTest {
         } catch (_: Exception) {
         }
 
+        assertThat(call.isCanceled).isTrue()
         assertThat(circuitBreaker.metrics.numberOfFailedCalls).isEqualTo(0)
         assertThat(circuitBreaker.metrics.numberOfSuccessfulCalls).isEqualTo(0)
         assertThat(circuitBreaker.metrics.numberOfNotPermittedCalls).isEqualTo(0)
