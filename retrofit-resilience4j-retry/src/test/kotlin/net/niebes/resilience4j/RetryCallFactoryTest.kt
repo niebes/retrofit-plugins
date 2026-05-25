@@ -90,7 +90,7 @@ internal class RetryCallFactoryTest {
             .create(SomeClient::class.java)
 
     @Test
-    fun `should not retry with sucessfull response`() {
+    fun `should not retry with successful response`() {
         stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.root().execute()
@@ -293,7 +293,7 @@ internal class RetryCallFactoryTest {
     }
 
     @Test
-    fun `should report success when retry condition not met but now exception thrown`() {
+    fun `should report success when retry condition not met but no exception thrown`() {
         stubFor(
             get(urlEqualTo("/api/users/userId/foo"))
                 .willReturn(aResponse().withStatus(500).withBody(responseBody))
