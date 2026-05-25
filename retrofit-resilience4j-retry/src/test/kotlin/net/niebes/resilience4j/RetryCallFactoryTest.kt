@@ -1,14 +1,21 @@
 package net.niebes.resilience4j
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.verify
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
+import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
-import mockwebserver3.MockResponse
-import mockwebserver3.MockWebServer
-import mockwebserver3.RecordedRequest
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,14 +35,14 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
+@WireMockTest
 internal class RetryCallFactoryTest {
     companion object {
         const val MAX_ATTEMPTS = 3
     }
 
-    private val responseBody = "{ \"name\": \"The body with no name\" }"
+    private val responseBody = """{ "name": "The body with no name" }"""
     private val responseObject = NamedObject("The body with no name")
-    private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
     private val retryConfig: RetryConfig =
         RetryConfig
@@ -46,11 +53,10 @@ internal class RetryCallFactoryTest {
             .build()
 
     @BeforeEach
-    fun before() {
-        server = MockWebServer()
-        server.start()
+    fun before(wmRuntimeInfo: WireMockRuntimeInfo) {
         client =
             createClient(
+                wmRuntimeInfo,
                 RetryCallFactory(
                     Retry.of("test", retryConfig).apply {
                         with(eventPublisher) {
@@ -64,7 +70,10 @@ internal class RetryCallFactoryTest {
             )
     }
 
-    private fun createClient(retryCallFactory: RetryCallFactory): SomeClient =
+    private fun createClient(
+        wmRuntimeInfo: WireMockRuntimeInfo,
+        retryCallFactory: RetryCallFactory,
+    ): SomeClient =
         Retrofit
             .Builder()
             .client(
@@ -76,76 +85,81 @@ internal class RetryCallFactoryTest {
                     .build()
             ).addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
             .addCallAdapterFactory(retryCallFactory)
-            .baseUrl(baseUrl())
+            .baseUrl(wmRuntimeInfo.httpBaseUrl + "/")
             .build()
             .create(SomeClient::class.java)
 
-    private fun addResponse(mockResponse: MockResponse) = server.enqueue(mockResponse)
-
-    @AfterEach
-    fun after() {
-        server.close()
-    }
-
     @Test
     fun `should not retry with sucessfull response`() {
-        addResponse(
-            MockResponse(body = responseBody)
-        )
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
+
         val response = client.root().execute()
-        assertResponse(response, 200, responseObject)
-        val recordedRequests: List<RecordedRequest> = server.getRecordedRequests()
-        assertThat(recordedRequests.map { it.url.encodedPath }).containsExactly("/")
+
+        assertThat(response.code()).isEqualTo(200)
+        assertThat(response.body()).isEqualTo(responseObject)
+        verify(1, getRequestedFor(urlEqualTo("/")))
     }
 
     @Test
     fun `should use the first successful result within retry count`() {
-        repeat(MAX_ATTEMPTS - 1) {
-            addResponse(
-                MockResponse(code = 500, body = responseBody)
-            )
-        }
-        addResponse(
-            MockResponse(body = responseBody)
+        stubFor(
+            get(urlEqualTo("/"))
+                .inScenario("retry")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+                .willSetStateTo("attempt2")
         )
-        val response = client.root().execute()
-        assertResponse(response, 200, responseObject)
-        val recordedRequests = server.getRecordedRequests()
+        stubFor(
+            get(urlEqualTo("/"))
+                .inScenario("retry")
+                .whenScenarioStateIs("attempt2")
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+                .willSetStateTo("attempt3")
+        )
+        stubFor(
+            get(urlEqualTo("/"))
+                .inScenario("retry")
+                .whenScenarioStateIs("attempt3")
+                .willReturn(aResponse().withBody(responseBody))
+        )
 
-        assertThat(recordedRequests.size).isEqualTo(MAX_ATTEMPTS)
+        val response = client.root().execute()
+
+        assertThat(response.code()).isEqualTo(200)
+        assertThat(response.body()).isEqualTo(responseObject)
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/")))
     }
 
     @Test
     fun rootWithTimeout() {
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withFixedDelay(5000)))
+
         Assertions.assertThrows(SocketTimeoutException::class.java) {
             client.root().execute()
         }
 
-        val actual = server.getRecordedRequests().map { it.url.encodedPath }
-        assertThat(actual).containsExactly("/", "/", "/")
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/")))
     }
 
     @Test
     fun `should not retry POST by default`() {
-        addResponse(
-            MockResponse(code = 500, body = responseBody)
+        stubFor(
+            post(urlEqualTo("/new/nonidempotent/transaction"))
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
         )
+
         client.createTransaction().execute()
 
-        assertThat(
-            server.getRecordedRequests().map { it.url.encodedPath }
-        ).containsExactly("/new/nonidempotent/transaction")
+        verify(1, postRequestedFor(urlEqualTo("/new/nonidempotent/transaction")))
     }
 
     @Test
-    fun `should retry POST when configured`() {
+    fun `should retry POST when configured`(wmRuntimeInfo: WireMockRuntimeInfo) {
         client =
             createClient(
+                wmRuntimeInfo,
                 RetryCallFactory(
-                    Retry.of(
-                        "test",
-                        retryConfig
-                    )
+                    Retry.of("test", retryConfig)
                 ) {
                     method == "GET" ||
                         setOf(
@@ -153,32 +167,41 @@ internal class RetryCallFactoryTest {
                         ).contains(url.pathSegments)
                 }
             )
-        repeat(MAX_ATTEMPTS) {
-            addResponse(
-                MockResponse(code = 500, body = responseBody)
-            )
-        }
+        stubFor(
+            post(urlEqualTo("/new/nonidempotent/transaction"))
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+        )
 
         client.createTransaction().execute()
 
-        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
-            "/new/nonidempotent/transaction",
-            "/new/nonidempotent/transaction",
-            "/new/nonidempotent/transaction"
-        )
+        verify(MAX_ATTEMPTS, postRequestedFor(urlEqualTo("/new/nonidempotent/transaction")))
     }
 
     @Test
     fun `should retry on async requests`() {
-        addResponse(
-            MockResponse(code = 500, body = responseBody)
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .inScenario("async-retry")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+                .willSetStateTo("attempt2")
         )
-        addResponse(
-            MockResponse(code = 500, body = responseBody)
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .inScenario("async-retry")
+                .whenScenarioStateIs("attempt2")
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+                .willSetStateTo("attempt3")
         )
-        addResponse(MockResponse(body = responseBody))
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .inScenario("async-retry")
+                .whenScenarioStateIs("attempt3")
+                .willReturn(aResponse().withBody(responseBody))
+        )
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
+
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
                 override fun onResponse(
@@ -197,24 +220,21 @@ internal class RetryCallFactoryTest {
                 }
             }
         )
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
+
+        latch.await(1, TimeUnit.SECONDS)
         assertThat(successes.get()).isEqualTo(1)
-        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
-            "/api/users/userId/foo",
-            "/api/users/userId/foo",
-            "/api/users/userId/foo"
-        )
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/api/users/userId/foo")))
     }
 
     @Test
     fun `should report success when no exception thrown`() {
-        repeat(MAX_ATTEMPTS) {
-            addResponse(
-                MockResponse(code = 500, body = responseBody)
-            )
-        }
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+        )
         val latch = CountDownLatch(1)
         val successes = AtomicInteger(0)
+
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
                 override fun onResponse(
@@ -233,19 +253,21 @@ internal class RetryCallFactoryTest {
                 }
             }
         )
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
+
+        latch.await(1, TimeUnit.SECONDS)
         assertThat(successes.get()).isEqualTo(1)
-        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
-            "/api/users/userId/foo",
-            "/api/users/userId/foo",
-            "/api/users/userId/foo"
-        )
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/api/users/userId/foo")))
     }
 
     @Test
     fun `should report error when all async calls threw exceptions`() {
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .willReturn(aResponse().withFixedDelay(5000))
+        )
         val latch = CountDownLatch(1)
         val failures = AtomicInteger(0)
+
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
                 override fun onResponse(
@@ -265,27 +287,19 @@ internal class RetryCallFactoryTest {
             }
         )
 
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
+        latch.await(1, TimeUnit.SECONDS)
         assertThat(failures.get()).isEqualTo(1)
-
-        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
-            "/api/users/userId/foo",
-            "/api/users/userId/foo",
-            "/api/users/userId/foo"
-        )
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/api/users/userId/foo")))
     }
 
     @Test
     fun `should report success when retry condition not met but now exception thrown`() {
-        repeat(MAX_ATTEMPTS) {
-            addResponse(
-                MockResponse(
-                    code = 500,
-                    body = responseBody
-                )
-            )
-        }
+        stubFor(
+            get(urlEqualTo("/api/users/userId/foo"))
+                .willReturn(aResponse().withStatus(500).withBody(responseBody))
+        )
         val latch = CountDownLatch(MAX_ATTEMPTS)
+
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
                 override fun onResponse(
@@ -303,33 +317,11 @@ internal class RetryCallFactoryTest {
                 }
             }
         )
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
-        assertThat(server.getRecordedRequests().map { it.url.encodedPath }).containsExactly(
-            "/api/users/userId/foo",
-            "/api/users/userId/foo",
-            "/api/users/userId/foo"
-        )
+
+        latch.await(1, TimeUnit.SECONDS)
+        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo("/api/users/userId/foo")))
     }
 
-    private fun MockWebServer.getRecordedRequests(maxDuration: Duration = Duration.ofMillis(100)): List<RecordedRequest> =
-        generateSequence {
-            takeRequest(maxDuration.toMillis(), TimeUnit.MILLISECONDS)
-        }.toList()
-
-    private fun baseUrl() = server.url("/").toString()
-
-    private fun assertResponse(
-        response: Response<NamedObject>,
-        status: Int,
-        body: Any?,
-    ) {
-        assertThat(response.code()).isEqualTo(status)
-        assertThat(response.body()).isEqualTo(body)
-    }
-
-    /**
-     * A test client interface
-     */
     interface SomeClient {
         @GET("/")
         fun root(): Call<NamedObject>
@@ -344,9 +336,6 @@ internal class RetryCallFactoryTest {
         ): Call<NamedObject>
     }
 
-    /**
-     * A test data class
-     */
     data class NamedObject(
         val name: String,
     )

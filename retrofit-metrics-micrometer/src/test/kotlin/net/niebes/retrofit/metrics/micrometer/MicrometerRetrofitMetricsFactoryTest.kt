@@ -1,17 +1,21 @@
 package net.niebes.retrofit.metrics.micrometer
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.any
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import mockwebserver3.MockResponse
-import mockwebserver3.MockWebServer
 import net.niebes.retrofit.metrics.HttpSeries
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.fail
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Call
@@ -26,19 +30,19 @@ import retrofit2.http.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@WireMockTest
 internal class MicrometerRetrofitMetricsFactoryTest {
-    private val responseBody = "{ \"name\": \"The body with no name\" }"
+    private val responseBody = """{ "name": "The body with no name" }"""
     private val responseObject = NamedObject("The body with no name")
 
-    private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
     private lateinit var meterRegistry: MeterRegistry
+    private lateinit var baseUrl: String
 
     @BeforeEach
-    fun before() {
-        server = MockWebServer()
-        server.start()
+    fun before(wmRuntimeInfo: WireMockRuntimeInfo) {
         meterRegistry = SimpleMeterRegistry()
+        baseUrl = wmRuntimeInfo.httpBaseUrl + "/"
 
         val okHttpClient =
             OkHttpClient
@@ -47,92 +51,80 @@ internal class MicrometerRetrofitMetricsFactoryTest {
                 .readTimeout(1000, TimeUnit.MILLISECONDS)
                 .writeTimeout(1000, TimeUnit.MILLISECONDS)
                 .build()
-        val baseUrl = server.url("/")
         val retrofit =
             Retrofit
                 .Builder()
                 .client(okHttpClient)
                 .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
                 .addCallAdapterFactory(MicrometerRetrofitMetricsFactory(meterRegistry))
-                .baseUrl(baseUrl.toString())
+                .baseUrl(baseUrl)
                 .build()
         client = retrofit.create(SomeClient::class.java)
     }
 
-    private fun addResponse(mockResponse: MockResponse) {
-        server.enqueue(mockResponse)
-    }
-
-    @AfterEach
-    fun after() {
-        server.close()
-    }
-
     @Test
     fun root() {
-        addResponse(
-            MockResponse(body = responseBody)
-        )
-        val response = client.root().execute()
-        assertResponse(response, 200, responseObject)
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
 
-        assertThat(meter("GET", "/", baseUrl(), "200").count()).isEqualTo(1)
+        val response = client.root().execute()
+
+        assertResponse(response, 200, responseObject)
+        assertThat(meter("GET", "/", baseUrl, "200").count()).isEqualTo(1)
     }
 
     @Test
     fun rootWithTimeout() {
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withFixedDelay(5000)))
+
         assertThatThrownBy { client.root().execute() }
 
-        assertThat(exceptionMeter("GET", "/", baseUrl(), "SocketTimeoutException").count()).isEqualTo(1)
+        assertThat(exceptionMeter("GET", "/", baseUrl, "SocketTimeoutException").count()).isEqualTo(1)
     }
 
     @Test
     fun rootWith500() {
-        addResponse(
-            MockResponse(body = responseBody, code = 500)
-        )
-        val response = client.root().execute()
-        assertThat(response.code()).isEqualTo(500)
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(500).withBody(responseBody)))
 
-        assertThat(meter("GET", "/", baseUrl(), "500").count()).isEqualTo(1)
+        val response = client.root().execute()
+
+        assertThat(response.code()).isEqualTo(500)
+        assertThat(meter("GET", "/", baseUrl, "500").count()).isEqualTo(1)
     }
 
     @Test
     fun dotNotation() {
-        addResponse(
-            MockResponse(body = responseBody)
-        )
-        val response = client.dotNotation().execute()
-        assertResponse(response, 200, responseObject)
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
 
-        assertThat(meter("GET", ".", baseUrl(), "200").count()).isEqualTo(1)
+        val response = client.dotNotation().execute()
+
+        assertResponse(response, 200, responseObject)
+        assertThat(meter("GET", ".", baseUrl, "200").count()).isEqualTo(1)
     }
 
     @Test
     fun customHttpMethod() {
-        addResponse(
-            MockResponse(body = responseBody)
-        )
-        val response = client.customHTTPMethod().execute()
-        assertResponse(response, 200, responseObject)
+        stubFor(any(urlEqualTo("/custom/method")).willReturn(aResponse().withBody(responseBody)))
 
-        assertThat(meter("FOO", "/custom/method", baseUrl(), "200").count()).isEqualTo(1)
+        val response = client.customHTTPMethod().execute()
+
+        assertResponse(response, 200, responseObject)
+        assertThat(meter("FOO", "/custom/method", baseUrl, "200").count()).isEqualTo(1)
     }
 
     @Test
     fun usesPlaceholder() {
-        addResponse(
-            MockResponse(body = responseBody)
-        )
+        stubFor(get(urlEqualTo("/api/users/foo/foo")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.getWithPlaceHolderValue("foo", "bar").execute()
+
         assertResponse(response, 200, responseObject)
-        assertThat(meter("GET", "api/users/{userId}/foo", baseUrl(), "200").count()).isEqualTo(1)
+        assertThat(meter("GET", "api/users/{userId}/foo", baseUrl, "200").count()).isEqualTo(1)
     }
 
     @Test
     fun async() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(get(urlEqualTo("/api/users/userId/foo")).willReturn(aResponse().withBody(responseBody)))
+
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
             object : Callback<NamedObject> {
@@ -151,11 +143,9 @@ internal class MicrometerRetrofitMetricsFactoryTest {
                 }
             }
         )
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
-        assertThat(meter("GET", "api/users/{userId}/foo", baseUrl(), "200").count()).isEqualTo(1)
+        latch.await(1, TimeUnit.SECONDS)
+        assertThat(meter("GET", "api/users/{userId}/foo", baseUrl, "200").count()).isEqualTo(1)
     }
-
-    private fun baseUrl() = server.url("/").toString()
 
     private fun assertResponse(
         response: Response<NamedObject>,
@@ -205,14 +195,11 @@ internal class MicrometerRetrofitMetricsFactoryTest {
         }.hasCauseInstanceOf(IllegalArgumentException::class.java)
     }
 
-    /**
-     * A test client interface
-     */
     interface SomeClient {
         @GET("/")
         fun root(): Call<NamedObject>
 
-        @GET(".") // uses base url without path
+        @GET(".")
         fun dotNotation(): Call<NamedObject>
 
         @GET("/throws/exception")
@@ -228,9 +215,6 @@ internal class MicrometerRetrofitMetricsFactoryTest {
         ): Call<NamedObject>
     }
 
-    /**
-     * A test data class
-     */
     data class NamedObject(
         val name: String,
     )

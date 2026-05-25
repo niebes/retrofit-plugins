@@ -2,12 +2,16 @@ package net.niebes.retrofit.metrics.statsd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.any
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import com.timgroup.statsd.StatsDClient
-import mockwebserver3.MockResponse
-import mockwebserver3.MockWebServer
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -29,17 +33,17 @@ import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@WireMockTest
 class StatsDRetrofitMetricsFactoryTest {
-    private val responseBody = "{ \"name\": \"The body with no name\" }"
+    private val responseBody = """{ "name": "The body with no name" }"""
     private val responseObject = NamedObject("The body with no name")
     private val statsD = mock(StatsDClient::class.java)
-    private lateinit var server: MockWebServer
     private lateinit var client: SomeClient
+    private lateinit var baseUrl: String
 
     @BeforeEach
-    fun setUp() {
-        server = MockWebServer()
-        server.start()
+    fun setUp(wmRuntimeInfo: WireMockRuntimeInfo) {
+        baseUrl = wmRuntimeInfo.httpBaseUrl + "/"
         val okHttpClient =
             OkHttpClient
                 .Builder()
@@ -53,41 +57,21 @@ class StatsDRetrofitMetricsFactoryTest {
                 .client(okHttpClient)
                 .addConverterFactory(JacksonConverterFactory.create(ObjectMapper().registerKotlinModule()))
                 .addCallAdapterFactory(StatsDRetrofitMetricsFactory(statsD))
-                .baseUrl(server.url("/").toString())
+                .baseUrl(baseUrl)
                 .build()
         client = retrofit.create(SomeClient::class.java)
         reset(statsD)
     }
 
-    @AfterEach
-    fun tearDown() {
-        server.close()
-    }
-
-    private fun addResponse(mockResponse: MockResponse) {
-        server.enqueue(mockResponse)
-    }
-
-    private fun baseUrl(): String = server.url("/").toString()
-
-    private fun assertResponse(
-        response: Response<NamedObject>,
-        status: Int,
-        body: Any,
-    ) {
-        assertThat(response.code()).isEqualTo(status)
-        assertThat(response.body()).isEqualTo(body)
-    }
-
     @Test
     fun root() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.root().execute()
 
         assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "/",
             method = "GET",
             status = "200",
@@ -98,13 +82,13 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun dotNotation() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.dotNotation().execute()
 
         assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = ".",
             method = "GET",
             status = "200",
@@ -115,13 +99,13 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun rootWith500() {
-        addResponse(MockResponse(body = responseBody, code = 500))
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(500).withBody(responseBody)))
 
         val response = client.root().execute()
 
         assertThat(response.code()).isEqualTo(500)
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "/",
             method = "GET",
             status = "500",
@@ -132,6 +116,8 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun rootWithTimeout() {
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withFixedDelay(5000)))
+
         try {
             client.root().execute()
             fail("exception expected")
@@ -139,7 +125,7 @@ class StatsDRetrofitMetricsFactoryTest {
         }
 
         verifyExceptionMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "/",
             method = "GET",
             async = "false",
@@ -149,13 +135,13 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun customHttpMethod() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(any(urlEqualTo("/custom/method")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.customHTTPMethod().execute()
 
         assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "/custom/method",
             method = "FOO",
             status = "200",
@@ -166,13 +152,13 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun useUriPlaceHolder() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(get(urlEqualTo("/api/users/userId/foo")).willReturn(aResponse().withBody(responseBody)))
 
         val response = client.getWithPlaceHolderValue("userId", "headerValue").execute()
 
         assertResponse(response, HttpURLConnection.HTTP_OK, responseObject)
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "api/users/{userId}/foo",
             method = "GET",
             status = "200",
@@ -183,7 +169,7 @@ class StatsDRetrofitMetricsFactoryTest {
 
     @Test
     fun async() {
-        addResponse(MockResponse(body = responseBody))
+        stubFor(get(urlEqualTo("/api/users/userId/foo")).willReturn(aResponse().withBody(responseBody)))
 
         val latch = CountDownLatch(1)
         client.getWithPlaceHolderValue("userId", "headerValue").enqueue(
@@ -203,16 +189,25 @@ class StatsDRetrofitMetricsFactoryTest {
                 }
             }
         )
-        latch.await(1, TimeUnit.SECONDS) // wait for async to complete
+        latch.await(1, TimeUnit.SECONDS)
 
         verifyRequestMetrics(
-            baseUrl = baseUrl(),
+            baseUrl = baseUrl,
             path = "api/users/{userId}/foo",
             method = "GET",
             status = "200",
             series = "SUCCESSFUL",
             async = "true"
         )
+    }
+
+    private fun assertResponse(
+        response: Response<NamedObject>,
+        status: Int,
+        body: Any,
+    ) {
+        assertThat(response.code()).isEqualTo(status)
+        assertThat(response.body()).isEqualTo(body)
     }
 
     private fun verifyRequestMetrics(
@@ -256,15 +251,12 @@ class StatsDRetrofitMetricsFactoryTest {
         )
     }
 
-    /**
-     * A test client interface
-     */
     internal interface SomeClient {
         @GET("/")
         fun root(): Call<NamedObject>
 
         @GET(".")
-        fun dotNotation(): Call<NamedObject> // uses base url without path
+        fun dotNotation(): Call<NamedObject>
 
         @HTTP(method = "FOO", path = "/custom/method")
         fun customHTTPMethod(): Call<NamedObject>
