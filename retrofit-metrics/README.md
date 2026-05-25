@@ -7,7 +7,7 @@ this plugin creates metrics with tags.
 | base_url  | base_url                                         |
 | uri       | uri with placeholders                            |
 | method    | http method                                      |
-| async     | true for `execute()` false for `enqueue()`       |
+| async     | false for `execute()`, true for `enqueue()`       |
 | status    | response status or `Exception`                   |
 | series    | response status family or `EXCEPTION`            |
 | exception | `simpleName` of the response exception or `None` |
