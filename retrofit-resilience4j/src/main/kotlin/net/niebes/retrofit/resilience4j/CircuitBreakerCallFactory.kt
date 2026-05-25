@@ -73,7 +73,7 @@ private class CircuitBreakingCall<T>(
                 circuitBreaker.onError(
                     elapsed,
                     TimeUnit.NANOSECONDS,
-                    Throwable("Response error: HTTP ${response.code()} - ${response.message()}")
+                    HttpResponseException(response.code(), response.message())
                 )
             }
             return response
@@ -109,7 +109,7 @@ private class CircuitBreakingCall<T>(
                         circuitBreaker.onError(
                             elapsed,
                             TimeUnit.NANOSECONDS,
-                            Throwable("Response error: HTTP ${response.code()} - ${response.message()}")
+                            HttpResponseException(response.code(), response.message())
                         )
                     }
                     callback.onResponse(call, response)
