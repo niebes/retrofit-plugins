@@ -18,7 +18,7 @@ this plugin adds rate and p99 metrics into `http.client.requests` for all reques
 
 ### code
 add metrics via
-`addCallAdapterFactory(StatsDRetrofitMetricsFactory())` into your Retrofit Builder
+`addCallAdapterFactory(StatsDRetrofitMetricsFactory(statsDClient))` into your Retrofit Builder
 
 e.g.
 ```kotlin
@@ -32,7 +32,7 @@ e.g.
                     .callTimeout(callTimeoutDuration).build()
             )
             .addConverterFactory(JacksonConverterFactory.create(retrofitObjectMapper()))
-            .addCallAdapterFactory(StatsDRetrofitMetricsFactory())
+            .addCallAdapterFactory(StatsDRetrofitMetricsFactory(statsDClient))
             .build().create(MyApi::class.java)
 
         private fun retrofitObjectMapper(): ObjectMapper = ObjectMapper()
