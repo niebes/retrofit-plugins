@@ -6,6 +6,7 @@
     <version>1.20.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
+        <module>retrofit-resilience4j</module>
         <module>retrofit-resilience4j-retry</module>
         <module>retrofit-metrics</module>
         <module>retrofit-metrics-micrometer</module>
