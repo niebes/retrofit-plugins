@@ -1,10 +1,20 @@
 package net.niebes.retrofit.metrics
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import mockwebserver3.MockResponse
-import mockwebserver3.MockWebServer
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.any
+import com.github.tomakehurst.wiremock.client.WireMock.delete
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.head
+import com.github.tomakehurst.wiremock.client.WireMock.options
+import com.github.tomakehurst.wiremock.client.WireMock.patch
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.put
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo
+import com.github.tomakehurst.wiremock.junit5.WireMockTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Call
@@ -20,6 +30,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import java.time.Duration
 
+@WireMockTest
 internal class RetrofitMetricsFactoryTest {
     private val recordedCalls = mutableListOf<Pair<Map<String, String>, Duration>>()
 
@@ -33,30 +44,24 @@ internal class RetrofitMetricsFactoryTest {
             }
         }
 
-    private lateinit var server: MockWebServer
     private lateinit var retrofit: Retrofit
+    private lateinit var baseUrl: String
 
     @BeforeEach
-    fun setUp() {
-        server = MockWebServer()
-        server.start()
+    fun setUp(wmRuntimeInfo: WireMockRuntimeInfo) {
+        baseUrl = wmRuntimeInfo.httpBaseUrl + "/"
         retrofit =
             Retrofit
                 .Builder()
-                .baseUrl(server.url("/"))
+                .baseUrl(baseUrl)
                 .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
                 .addCallAdapterFactory(RetrofitMetricsFactory(metricsRecorder))
                 .build()
     }
 
-    @AfterEach
-    fun tearDown() {
-        server.close()
-    }
-
     @Test
     fun `records metrics for GET request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(get(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.get().execute()
@@ -68,7 +73,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for POST request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(post(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.post().execute()
@@ -80,7 +85,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for PUT request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(put(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.put().execute()
@@ -91,7 +96,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for DELETE request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(delete(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.delete().execute()
@@ -102,7 +107,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for PATCH request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(patch(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.patch().execute()
@@ -113,7 +118,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for OPTIONS request`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(options(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.options().execute()
@@ -124,7 +129,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for HEAD request`() {
-        server.enqueue(MockResponse())
+        stubFor(head(urlEqualTo("/api/test")).willReturn(aResponse()))
         val client = retrofit.create(TestClient::class.java)
 
         client.head().execute()
@@ -135,7 +140,7 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records metrics for custom HTTP method`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(any(urlEqualTo("/api/custom")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.custom().execute()
@@ -147,12 +152,12 @@ internal class RetrofitMetricsFactoryTest {
 
     @Test
     fun `records base_url tag`() {
-        server.enqueue(MockResponse(body = """{"value":"ok"}"""))
+        stubFor(get(urlEqualTo("/api/test")).willReturn(aResponse().withBody("""{"value":"ok"}""")))
         val client = retrofit.create(TestClient::class.java)
 
         client.get().execute()
 
-        assertThat(recordedCalls.first().first).containsEntry("base_url", server.url("/").toString())
+        assertThat(recordedCalls.first().first).containsEntry("base_url", baseUrl)
     }
 
     interface TestClient {

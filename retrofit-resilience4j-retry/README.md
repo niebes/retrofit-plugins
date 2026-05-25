@@ -24,14 +24,14 @@ Retrofit.Builder()
     .build().create(MyApi::class.java)
 ```
 
-The request gets retried when it result's in either (1) any* exception or (1) your configured `retryOnResult` evaluates
- to true
-* So far this wrapper retries all exceptions. While this might make sense for e.g. a SocketTimeout it might not for
- e.g. an SslException.
+The request gets retried when it results in either (1) any* exception or (2) your configured `retryOnResult` evaluates
+ to true.
+
+*By default this wrapper retries all exceptions. While this might make sense for a SocketTimeout, it might not for
+ an SslException.
 
 
-By default only GET requests get retried. To Retry different requests you can add your own clause
-e.g.
+By default only GET requests get retried. To retry different requests you can add your own clause:
 ```kotlin
     .addCallAdapterFactory(RetryCallFactory(
         retry = Retry.of("my-api-client", RetryConfig.custom<Response<out Any>>()
