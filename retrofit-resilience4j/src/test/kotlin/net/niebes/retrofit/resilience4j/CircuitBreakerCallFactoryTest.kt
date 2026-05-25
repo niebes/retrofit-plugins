@@ -87,6 +87,26 @@ internal class CircuitBreakerCallFactoryTest {
     }
 
     @Test
+    fun `failed response records HttpResponseException with status code`(wmRuntimeInfo: WireMockRuntimeInfo) {
+        stubFor(get(urlEqualTo("/api/test")).willReturn(aResponse().withStatus(503).withBody("unavailable")))
+        val circuitBreaker =
+            CircuitBreaker.of(
+                "test-exception",
+                CircuitBreakerConfig
+                    .custom()
+                    .slidingWindowSize(1)
+                    .minimumNumberOfCalls(1)
+                    .recordException { it is HttpResponseException }
+                    .build()
+            )
+        val client = createClient(wmRuntimeInfo, CircuitBreakerCallFactory(circuitBreaker))
+
+        client.get().execute()
+
+        assertThat(circuitBreaker.metrics.numberOfFailedCalls).isEqualTo(1)
+    }
+
+    @Test
     fun `open circuit throws CallNotPermittedException on execute`(wmRuntimeInfo: WireMockRuntimeInfo) {
         circuitBreaker.transitionToOpenState()
         val client = createClient(wmRuntimeInfo, CircuitBreakerCallFactory(circuitBreaker))
