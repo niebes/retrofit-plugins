@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Build & test all modules:** `./mvnw verify --no-transfer-progress`
 - **Build without tests:** `./mvnw package -DskipTests`
-- **Run a single test:** `./mvnw test -pl retrofit-metrics -Dtest=MicrometerRetrofitMetricsFactoryTest` (use `-pl <module>` to target a module)
+- **Run a single test:** `./mvnw test -pl retrofit-metrics-micrometer -Dtest=MicrometerRetrofitMetricsFactoryTest` (use `-pl <module>` to target a module)
 - **Format code:** `./mvnw ktlint:format` (runs ktlint auto-format)
 - **Check formatting:** `./mvnw ktlint:check` (also runs automatically during `./mvnw verify`)
 
