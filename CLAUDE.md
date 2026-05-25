@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kotlin library providing Retrofit2 `CallAdapter.Factory` plugins. Maven multi-module project targeting JVM 21. Published to Maven Central under `net.niebes` group. Current version: `1.20.0-SNAPSHOT`. Licensed under MIT.
+Kotlin library providing Retrofit2 `CallAdapter.Factory` plugins. Maven multi-module project targeting JVM 21. Published to Maven Central under `net.niebes` group.
 
 ### Modules
 
