@@ -57,7 +57,11 @@ private class CircuitBreakingCall<T>(
     private val circuitBreaker: CircuitBreaker,
     private val successResponse: (Response<out Any?>) -> Boolean,
 ) : Call<T> {
+    @Volatile
+    private var executed = false
+
     override fun execute(): Response<T> {
+        executed = true
         circuitBreaker.acquirePermission()
         val stopWatch = StopWatch.start()
         try {
@@ -84,6 +88,7 @@ private class CircuitBreakingCall<T>(
     }
 
     override fun enqueue(callback: Callback<T>) {
+        executed = true
         try {
             circuitBreaker.acquirePermission()
         } catch (e: CallNotPermittedException) {
@@ -127,7 +132,7 @@ private class CircuitBreakingCall<T>(
 
     override fun clone(): Call<T> = CircuitBreakingCall(wrappedCall.clone(), circuitBreaker, successResponse)
 
-    override fun isExecuted(): Boolean = wrappedCall.isExecuted
+    override fun isExecuted(): Boolean = executed
 
     override fun isCanceled(): Boolean = wrappedCall.isCanceled
 

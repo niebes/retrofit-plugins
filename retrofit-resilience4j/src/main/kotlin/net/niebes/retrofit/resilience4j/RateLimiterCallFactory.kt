@@ -47,7 +47,11 @@ private class RateLimitingCall<T>(
     private val wrappedCall: Call<T>,
     private val rateLimiter: RateLimiter,
 ) : Call<T> {
+    @Volatile
+    private var executed = false
+
     override fun execute(): Response<T> {
+        executed = true
         try {
             RateLimiter.waitForPermission(rateLimiter)
         } catch (e: RequestNotPermitted) {
@@ -59,6 +63,7 @@ private class RateLimitingCall<T>(
     }
 
     override fun enqueue(callback: Callback<T>) {
+        executed = true
         try {
             RateLimiter.waitForPermission(rateLimiter)
         } catch (e: RequestNotPermitted) {
@@ -79,7 +84,7 @@ private class RateLimitingCall<T>(
 
     override fun clone(): Call<T> = RateLimitingCall(wrappedCall.clone(), rateLimiter)
 
-    override fun isExecuted(): Boolean = wrappedCall.isExecuted
+    override fun isExecuted(): Boolean = executed
 
     override fun isCanceled(): Boolean = wrappedCall.isCanceled
 
