@@ -272,6 +272,7 @@
                         <tagNameFormat>@{project.version}</tagNameFormat>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
+                        <pushChanges>false</pushChanges>
                     </configuration>
                 </plugin>
             </plugins>
