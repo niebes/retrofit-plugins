@@ -34,13 +34,19 @@ Two variant patterns exist:
 
 Integration tests use WireMock (`@WireMockTest` annotation). `WireMockRuntimeInfo` is either injected into `@BeforeEach` (metrics modules) or directly into test method parameters (resilience4j modules). Metrics tests use `JacksonConverterFactory`; resilience4j tests use `ScalarsConverterFactory`.
 
+### Package Structure
+
+Most modules use `net.niebes.retrofit.*` packages, but the retry module uses `net.niebes.resilience4j` (without the `retrofit` segment).
+
 ## Tech Stack
 
-- Kotlin 2.3 with Maven (kotlin-maven-plugin), JVM target 21
-- Retrofit 3 + OkHttp 5
+- Kotlin (version managed in parent POM `kotlin.version`) with Maven (kotlin-maven-plugin), JVM target 21
+- Retrofit 3 + OkHttp 5 (versions managed in parent POM properties)
 - JUnit Jupiter 6 + AssertJ + Mockito + WireMock for tests
 - ktlint via ktlint-maven-plugin (enforced in verify phase)
+- maven-enforcer-plugin with `<dependencyConvergence/>` — build fails if transitive dependency versions conflict
 - CI: GitHub Actions (`maven.yml`), main branch is `develop`, runs `./mvnw verify`
+- Publishing: Maven Central via `central-publishing-maven-plugin`, GPG-signed at deploy phase
 
 ## Code Style
 
