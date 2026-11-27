@@ -19,7 +19,7 @@
             <dependency>
                 <groupId>com.datadoghq</groupId>
                 <artifactId>java-dogstatsd-client</artifactId>
-                <version>4.4.5</version>
+                <version>4.4.6</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
